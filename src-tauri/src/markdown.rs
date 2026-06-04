@@ -21,14 +21,14 @@ fn theme_set() -> &'static ThemeSet {
     TS.get_or_init(ThemeSet::load_defaults)
 }
 
-/// The bundled One-Dark theme (compiled into the binary), used for dark-mode code.
-const ONEDARK_TMTHEME: &[u8] = include_bytes!("../themes/onedark.tmTheme");
+/// The bundled warm "Sage & Rose" syntax theme (compiled into the binary).
+const WARM_TMTHEME: &[u8] = include_bytes!("../themes/groot-warm.tmTheme");
 
-fn dark_theme() -> &'static Theme {
-    static DARK: OnceLock<Theme> = OnceLock::new();
-    DARK.get_or_init(|| {
-        ThemeSet::load_from_reader(&mut Cursor::new(ONEDARK_TMTHEME))
-            .unwrap_or_else(|_| theme_set().themes["base16-ocean.dark"].clone())
+fn theme() -> &'static Theme {
+    static THEME: OnceLock<Theme> = OnceLock::new();
+    THEME.get_or_init(|| {
+        ThemeSet::load_from_reader(&mut Cursor::new(WARM_TMTHEME))
+            .unwrap_or_else(|_| theme_set().themes["InspiredGitHub"].clone())
     })
 }
 
@@ -111,19 +111,11 @@ pub fn read_markdown_file(path: String) -> Result<String, String> {
     std::fs::read_to_string(&path).map_err(|e| format!("Failed to read {path}: {e}"))
 }
 
-/// CSS for syntax highlighting: a light theme plus a dark theme wrapped in a
-/// prefers-color-scheme media query. Class names match the prefix used by
-/// `parse_markdown`'s highlighter.
+/// CSS for syntax highlighting using the single bundled warm theme (no light/dark
+/// split). Class names match the prefix used by `parse_markdown`'s highlighter.
 #[tauri::command]
 pub fn syntax_css() -> String {
-    let ts = theme_set();
-    let light = ts
-        .themes
-        .get("InspiredGitHub")
-        .and_then(|t| css_for_theme_with_class_style(t, CLASS_STYLE).ok())
-        .unwrap_or_default();
-    let dark = css_for_theme_with_class_style(dark_theme(), CLASS_STYLE).unwrap_or_default();
-    format!("{light}\n@media (prefers-color-scheme: dark) {{\n{dark}\n}}\n")
+    css_for_theme_with_class_style(theme(), CLASS_STYLE).unwrap_or_default()
 }
 
 #[cfg(test)]
@@ -163,21 +155,19 @@ mod tests {
     }
 
     #[test]
-    fn syntax_css_has_light_and_dark() {
-        let css = syntax_css();
-        assert!(!css.is_empty(), "css should not be empty");
-        assert!(
-            css.contains("prefers-color-scheme: dark"),
-            "css should contain a dark media block"
-        );
+    fn syntax_css_uses_warm_theme() {
+        // The bundled warm theme uses dusty rose (#b06a7a) for strings; its presence
+        // proves the bundled theme loaded (not the built-in fallback).
+        let css = syntax_css().to_lowercase();
+        assert!(css.contains("b06a7a"), "expected warm dusty-rose in css, got: {css}");
     }
 
     #[test]
-    fn dark_theme_uses_onedark_palette() {
-        // The bundled One-Dark theme uses coral (#e06c75) for strings; the built-in
-        // default dark theme does not. Its presence proves the bundled theme loaded.
-        let css = syntax_css().to_lowercase();
-        assert!(css.contains("e06c75"), "expected One-Dark coral in css, got: {css}");
+    fn syntax_css_has_no_dark_media() {
+        assert!(
+            !syntax_css().contains("prefers-color-scheme"),
+            "single fixed theme should not emit a dark media query"
+        );
     }
 
     #[test]
