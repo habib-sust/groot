@@ -21,6 +21,16 @@ impl RecentFiles {
         self.items.clear();
     }
 
+    /// Remove any entry equal to `path`.
+    pub fn remove(&mut self, path: &Path) {
+        self.items.retain(|p| p.as_path() != path);
+    }
+
+    /// Retain only entries for which `keep` returns true (order preserved).
+    pub fn prune_with(&mut self, mut keep: impl FnMut(&PathBuf) -> bool) {
+        self.items.retain(|p| keep(p));
+    }
+
     pub fn list(&self) -> &[PathBuf] {
         &self.items
     }
@@ -98,5 +108,25 @@ mod tests {
     fn load_missing_file_is_empty() {
         let loaded = RecentFiles::load(Path::new("/no/such/groot_recent.json"));
         assert!(loaded.list().is_empty());
+    }
+
+    #[test]
+    fn remove_deletes_matching_entry() {
+        let mut r = RecentFiles::default();
+        r.add(PathBuf::from("/a.md"));
+        r.add(PathBuf::from("/b.md"));
+        r.remove(Path::new("/a.md"));
+        assert_eq!(r.list(), &[PathBuf::from("/b.md")]);
+    }
+
+    #[test]
+    fn prune_with_keeps_only_approved() {
+        let mut r = RecentFiles::default();
+        r.add(PathBuf::from("/a.md"));
+        r.add(PathBuf::from("/b.md"));
+        r.add(PathBuf::from("/c.md"));
+        let keep = [PathBuf::from("/a.md"), PathBuf::from("/c.md")];
+        r.prune_with(|p| keep.contains(p));
+        assert_eq!(r.list(), &[PathBuf::from("/c.md"), PathBuf::from("/a.md")]);
     }
 }
