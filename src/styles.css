@@ -15,17 +15,17 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #26231f;
-    --fg: #d6ccbe;
-    --heading: #efe7da;
-    --muted: #978d7e;
-    --border: #574c44;
-    --rule: #574c44;
+    --bg: #2e3138;
+    --fg: #c8c4bb;
+    --heading: #ece8e0;
+    --muted: #8d8f8c;
+    --border: #6f585c;
+    --rule: #6f585c;
     --link: #d8a43e;
     --accent: #e9bd63;
-    --code-bg: #1f1d19;
-    --inline-code-bg: #353029;
-    --callout-bg: #29302a;
+    --code-bg: #24272c;
+    --inline-code-bg: #3a3e44;
+    --callout-bg: #2c322b;
     --callout-border: #7f9670;
   }
 }
