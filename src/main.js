@@ -203,7 +203,7 @@ function setCurrent(i) {
     CSS.highlights.set("find-current", new Highlight(range));
   }
   const el = range.startContainer.parentElement;
-  if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
+  if (el) el.scrollIntoView({ block: "center", behavior: "auto" });
   findCount.textContent = `${findIndex + 1}/${findMatches.length}`;
 }
 
