@@ -30,7 +30,9 @@ pub fn run() {
         .setup(|app| {
             let handle = app.handle();
             let store_path = recent_store_path(handle);
-            let recent = RecentFiles::load(&store_path);
+            let mut recent = RecentFiles::load(&store_path);
+            recent.prune_with(|p| p.exists());
+            let _ = recent.save(&store_path);
             let menu = menu::build_app_menu(handle, &recent)?;
             app.set_menu(menu)?;
             app.manage(Mutex::new(recent));

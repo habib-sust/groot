@@ -21,6 +21,11 @@ pub fn build_app_menu<R: Runtime>(
         .item(&PredefinedMenuItem::quit(app, None)?)
         .build()?;
 
+    let edit_menu = SubmenuBuilder::new(app, "Edit")
+        .item(&PredefinedMenuItem::copy(app, None)?)
+        .item(&PredefinedMenuItem::select_all(app, None)?)
+        .build()?;
+
     let open_file = MenuItemBuilder::new("Open File…")
         .id("open_file")
         .accelerator("CmdOrCtrl+O")
@@ -54,6 +59,7 @@ pub fn build_app_menu<R: Runtime>(
 
     MenuBuilder::new(app)
         .item(&app_menu)
+        .item(&edit_menu)
         .item(&file_menu)
         .build()
 }
@@ -83,7 +89,17 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
         }
         "no_recent" => {}
         path => {
-            on_file_chosen(app, PathBuf::from(path));
+            let path_buf = PathBuf::from(path);
+            if path_buf.exists() {
+                on_file_chosen(app, path_buf);
+            } else {
+                {
+                    let state = app.state::<Mutex<RecentFiles>>();
+                    state.lock().unwrap().remove(&path_buf);
+                }
+                persist_and_refresh(app);
+                let _ = app.emit("open-error", format!("File no longer exists: {path}"));
+            }
         }
     }
 }
