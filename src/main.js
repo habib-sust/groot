@@ -1,9 +1,5 @@
-// This project is a no-bundler Tauri setup (withGlobalTauri: true,
-// frontendDist points directly at src/). The Tauri APIs are therefore
-// consumed from the injected global rather than via bare ES-module imports,
-// which a browser cannot resolve without a bundler.
 const { invoke } = window.__TAURI__.core;
-const { open } = window.__TAURI__.dialog;
+const { listen } = window.__TAURI__.event;
 
 const viewport = document.querySelector("#viewport");
 
@@ -11,9 +7,9 @@ const SAMPLE = `# Welcome to Groot
 
 A lightweight **Markdown viewer** built with Tauri + Rust.
 
-- Click **Open File** above to view a \`.md\` file.
-- Rendering is powered by \`pulldown-cmark\`.
-- Output is sanitized with \`ammonia\`.
+- Use the **File** menu → **Open File…** (⌘O) to view a \`.md\` file.
+- Recently opened files appear under **File → Open Recent**.
+- Rendering is powered by \`pulldown-cmark\`, sanitized with \`ammonia\`.
 
 ## Example code
 
@@ -38,13 +34,8 @@ async function render(markdown) {
   }
 }
 
-async function openFile() {
+async function openPath(path) {
   try {
-    const path = await open({
-      multiple: false,
-      filters: [{ name: "Markdown", extensions: ["md", "markdown"] }],
-    });
-    if (!path) return; // user cancelled
     const content = await invoke("read_markdown_file", { path });
     await render(content);
   } catch (e) {
@@ -52,7 +43,11 @@ async function openFile() {
   }
 }
 
+// The native File menu (Rust) emits "open-file" with the chosen path.
+listen("open-file", (event) => {
+  openPath(event.payload);
+});
+
 window.addEventListener("DOMContentLoaded", () => {
-  document.querySelector("#open-file").addEventListener("click", openFile);
   render(SAMPLE);
 });
