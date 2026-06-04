@@ -13,6 +13,23 @@
   --callout-border: #9cae8a;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #26231f;
+    --fg: #d6ccbe;
+    --heading: #efe7da;
+    --muted: #978d7e;
+    --border: #574c44;
+    --rule: #574c44;
+    --link: #d8a43e;
+    --accent: #e9bd63;
+    --code-bg: #1f1d19;
+    --inline-code-bg: #353029;
+    --callout-bg: #29302a;
+    --callout-border: #7f9670;
+  }
+}
+
 * { box-sizing: border-box; }
 
 html, body {
