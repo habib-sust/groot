@@ -15,6 +15,11 @@ pub fn parse_markdown(content: String) -> Result<String, String> {
     Ok(ammonia::clean(&rendered))
 }
 
+#[tauri::command]
+pub fn read_markdown_file(path: String) -> Result<String, String> {
+    std::fs::read_to_string(&path).map_err(|e| format!("Failed to read {path}: {e}"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -35,5 +40,11 @@ mod tests {
     fn strips_script_tags() {
         let html = parse_markdown("<script>alert('x')</script>".to_string()).unwrap();
         assert!(!html.contains("<script>"), "got: {html}");
+    }
+
+    #[test]
+    fn read_missing_file_errors() {
+        let result = read_markdown_file("/no/such/file-xyz.md".to_string());
+        assert!(result.is_err(), "expected Err for missing file");
     }
 }
