@@ -13,9 +13,10 @@ A lightweight **Markdown viewer** built with Tauri + Rust.
 
 ## Example code
 
-\`\`\`
+\`\`\`rust
 fn main() {
-    println!("hello, groot");
+    let greeting = "hello, groot";
+    println!("{greeting}");
 }
 \`\`\`
 
@@ -43,11 +44,30 @@ async function openPath(path) {
   }
 }
 
+// Inject the syntect-generated theme CSS (light + dark) once.
+async function injectSyntaxTheme() {
+  try {
+    const css = await invoke("syntax_css");
+    const style = document.createElement("style");
+    style.id = "syntax-theme";
+    style.textContent = css;
+    document.head.appendChild(style);
+  } catch (e) {
+    // Highlighting CSS is non-critical; ignore failures.
+  }
+}
+
 // The native File menu (Rust) emits "open-file" with the chosen path.
 listen("open-file", (event) => {
   openPath(event.payload);
 });
 
-window.addEventListener("DOMContentLoaded", () => {
+// Rust emits "open-error" when a recent file no longer exists (and was pruned).
+listen("open-error", (event) => {
+  showError(String(event.payload));
+});
+
+window.addEventListener("DOMContentLoaded", async () => {
+  await injectSyntaxTheme();
   render(SAMPLE);
 });
