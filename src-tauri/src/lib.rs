@@ -5,6 +5,7 @@ mod recent_files;
 
 use std::sync::Mutex;
 
+use tauri::Emitter;
 use tauri::Manager;
 
 use recent_files::RecentFiles;
@@ -37,6 +38,33 @@ pub fn run() {
             let menu = menu::build_app_menu(handle, &recent)?;
             app.set_menu(menu)?;
             app.manage(Mutex::new(recent));
+
+            let drag_handle = app.handle().clone();
+            if let Some(window) = app.get_webview_window("main") {
+                window.on_window_event(move |event| {
+                    if let tauri::WindowEvent::DragDrop(tauri::DragDropEvent::Drop { paths, .. }) =
+                        event
+                    {
+                        let md = paths.iter().find(|p| {
+                            matches!(
+                                p.extension()
+                                    .and_then(|e| e.to_str())
+                                    .map(|e| e.to_ascii_lowercase())
+                                    .as_deref(),
+                                Some("md") | Some("markdown")
+                            )
+                        });
+                        match md {
+                            Some(path) => menu::open_path(&drag_handle, path.clone()),
+                            None => {
+                                let _ = drag_handle
+                                    .emit("open-error", "No markdown file in the drop".to_string());
+                            }
+                        }
+                    }
+                });
+            }
+
             Ok(())
         })
         .on_menu_event(|app, event| {

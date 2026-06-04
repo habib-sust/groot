@@ -75,7 +75,7 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
                 .pick_file(move |file_path| {
                     if let Some(fp) = file_path {
                         if let Ok(path) = fp.into_path() {
-                            on_file_chosen(&app, path);
+                            open_path(&app, path);
                         }
                     }
                 });
@@ -91,7 +91,7 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
         path => {
             let path_buf = PathBuf::from(path);
             if path_buf.exists() {
-                on_file_chosen(app, path_buf);
+                open_path(app, path_buf);
             } else {
                 {
                     let state = app.state::<Mutex<RecentFiles>>();
@@ -104,9 +104,8 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
     }
 }
 
-/// Add the chosen path to recents, persist, rebuild the menu, and tell the
-/// webview to render it.
-fn on_file_chosen<R: Runtime>(app: &AppHandle<R>, path: PathBuf) {
+/// Open a file: set title, add to recents, persist, rebuild menu, emit open-file.
+pub fn open_path<R: Runtime>(app: &AppHandle<R>, path: PathBuf) {
     if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
         if let Some(window) = app.get_webview_window("main") {
             let _ = window.set_title(name);
