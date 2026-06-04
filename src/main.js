@@ -56,6 +56,7 @@ async function render(markdown) {
   try {
     viewport.innerHTML = await invoke("parse_markdown", { content: markdown });
     addCopyButtons();
+    buildOutline();
   } catch (e) {
     showError(String(e));
   }
@@ -228,3 +229,86 @@ if (findBar) {
 }
 
 listen("find", () => openFind());
+
+// ---- Outline / TOC ----
+const outline = document.querySelector("#outline");
+let outlineObserver = null;
+
+function slugify(text) {
+  const base = text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return base || "section";
+}
+
+function toggleOutline() {
+  if (outline) outline.hidden = !outline.hidden;
+}
+
+function buildOutline() {
+  if (!outline) return;
+  if (outlineObserver) {
+    outlineObserver.disconnect();
+    outlineObserver = null;
+  }
+  outline.innerHTML = "";
+
+  const headings = [...viewport.querySelectorAll("h1, h2, h3, h4, h5, h6")];
+  if (headings.length === 0) {
+    outline.innerHTML = '<p class="outline-empty">No headings in this document.</p>';
+    return;
+  }
+
+  const used = new Map();
+  const linkByHeading = new Map();
+  for (const h of headings) {
+    if (!h.id) {
+      const base = slugify(h.textContent);
+      const n = used.get(base) || 0;
+      used.set(base, n + 1);
+      h.id = n ? `${base}-${n}` : base;
+    }
+    const level = Number(h.tagName.substring(1));
+    const link = document.createElement("a");
+    link.className = "outline-link";
+    link.dataset.level = String(level);
+    link.textContent = h.textContent;
+    link.addEventListener("click", () => h.scrollIntoView({ block: "start" }));
+    outline.appendChild(link);
+    linkByHeading.set(h, link);
+  }
+
+  const visible = new Set();
+  outlineObserver = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) visible.add(e.target);
+        else visible.delete(e.target);
+      }
+      let active = null;
+      for (const h of headings) {
+        if (visible.has(h)) {
+          active = h;
+          break;
+        }
+      }
+      if (!active) {
+        for (const h of headings) {
+          if (h.getBoundingClientRect().top < 120) active = h;
+          else break;
+        }
+      }
+      for (const [h, link] of linkByHeading) {
+        link.classList.toggle("active", h === active);
+      }
+      const activeLink = active && linkByHeading.get(active);
+      if (activeLink) activeLink.scrollIntoView({ block: "nearest" });
+    },
+    { root: viewport, rootMargin: "0px 0px -70% 0px", threshold: 0 }
+  );
+  headings.forEach((h) => outlineObserver.observe(h));
+}
+
+listen("toggle-outline", () => toggleOutline());
