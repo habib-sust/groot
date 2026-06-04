@@ -278,3 +278,38 @@ body {
   color: var(--muted);
   font-size: 0.85em;
 }
+
+@media print {
+  /* Both selectors so the light print palette wins even when data-theme="dark"
+     is set (equal specificity to :root[data-theme="dark"], later in source). */
+  :root,
+  :root[data-theme="dark"] {
+    --bg: #ffffff;
+    --fg: #24292f;
+    --heading: #1f2328;
+    --muted: #57606a;
+    --border: #d0d7de;
+    --rule: #d8dee4;
+    --code-bg: #f6f8fa;
+    --inline-code-bg: #eef1f3;
+    --link: #2f4fd0;
+  }
+
+  body {
+    display: block;
+  }
+
+  #outline,
+  #find-bar,
+  .copy-btn {
+    display: none !important;
+  }
+
+  #viewport {
+    height: auto;
+    overflow: visible;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+}

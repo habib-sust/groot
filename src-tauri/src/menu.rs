@@ -62,9 +62,19 @@ pub fn build_app_menu<R: Runtime>(
     }
     let recent_submenu = recent_builder.build()?;
 
+    let export_html_item = MenuItemBuilder::new("Export as HTML…")
+        .id("export_html")
+        .build(app)?;
+    let print_item = MenuItemBuilder::new("Print…")
+        .id("print")
+        .accelerator("CmdOrCtrl+P")
+        .build(app)?;
     let file_menu = SubmenuBuilder::new(app, "File")
         .item(&open_file)
         .item(&recent_submenu)
+        .separator()
+        .item(&export_html_item)
+        .item(&print_item)
         .build()?;
 
     let appearance_menu = SubmenuBuilder::new(app, "Appearance")
@@ -133,6 +143,12 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
         }
         "toggle_outline" => {
             let _ = app.emit("toggle-outline", ());
+        }
+        "export_html" => {
+            let _ = app.emit("export-html", ());
+        }
+        "print" => {
+            let _ = app.emit("print", ());
         }
         "no_recent" => {}
         "appearance_light" | "appearance_dark" | "appearance_system" => {

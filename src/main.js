@@ -3,6 +3,8 @@ const { listen } = window.__TAURI__.event;
 
 const viewport = document.querySelector("#viewport");
 
+let currentPath = null;
+
 const SAMPLE = `# Welcome to Groot
 
 A lightweight **Markdown viewer** built with Tauri + Rust.
@@ -63,6 +65,7 @@ async function render(markdown) {
 }
 
 async function openPath(path) {
+  currentPath = path;
   try {
     const content = await invoke("read_markdown_file", { path });
     await render(content);
@@ -125,6 +128,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     // default to system
   }
   await applyTheme(choice);
+  await injectPrintSyntax();
   render(SAMPLE);
 });
 
@@ -321,3 +325,38 @@ async function reloadInPlace(path) {
 }
 
 listen("file-changed", (event) => reloadInPlace(event.payload));
+
+// ---- Export / Print ----
+async function injectPrintSyntax() {
+  try {
+    const css = await invoke("syntax_css", { theme: "light" });
+    const style = document.createElement("style");
+    style.id = "syntax-print";
+    style.textContent = `@media print {\n${css}\n}`;
+    document.head.appendChild(style);
+  } catch {
+    // non-critical
+  }
+}
+
+async function exportHtml() {
+  try {
+    const baseCss = await (await fetch("styles.css")).text();
+    const codeCss = await invoke("syntax_css", { theme: "light" });
+    const css = `${baseCss}\n${codeCss}`;
+    const clone = viewport.cloneNode(true);
+    clone.querySelectorAll(".copy-btn").forEach((b) => b.remove());
+    const body = clone.innerHTML;
+    let name = "untitled.html";
+    if (currentPath) {
+      const base = currentPath.split("/").pop();
+      name = `${base.replace(/\.(md|markdown)$/i, "")}.html`;
+    }
+    await invoke("export_html", { body, css, name });
+  } catch (e) {
+    showError(String(e));
+  }
+}
+
+listen("print", () => window.print());
+listen("export-html", () => exportHtml());
