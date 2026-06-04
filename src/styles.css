@@ -1,29 +1,16 @@
 :root {
-  --bg: #ffffff;
-  --fg: #24292f;
-  --heading: #1f2328;
-  --muted: #57606a;
-  --border: #d0d7de;
-  --rule: #d8dee4;
-  --code-bg: #f6f8fa;
-  --inline-code-bg: #eff1f3;
-  --link: #2f4fd0;
-  --accent: #3b5bdb;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #2e3138;
-    --fg: #abb2bf;
-    --heading: #e6e6e6;
-    --muted: #8b94a1;
-    --border: #3a3f47;
-    --rule: #3a3f47;
-    --code-bg: #21242b;
-    --inline-code-bg: #3a3f47;
-    --link: #9db2ff;
-    --accent: #c8d3ff;
-  }
+  --bg: #faf5ee;
+  --fg: #4b4540;
+  --heading: #33302c;
+  --muted: #8c857a;
+  --border: #dcc3be;
+  --rule: #dcc3be;
+  --link: #b5841f;
+  --accent: #8f6716;
+  --code-bg: #ecf0e6;
+  --inline-code-bg: #e8eedd;
+  --callout-bg: #ebf0e4;
+  --callout-border: #9cae8a;
 }
 
 * { box-sizing: border-box; }
@@ -99,9 +86,11 @@ html, body {
 
 .markdown-body blockquote {
   margin: 1em 0;
-  padding: 0 1em;
+  padding: 0.6em 1em;
   color: var(--muted);
-  border-left: 3px solid var(--border);
+  background: var(--callout-bg);
+  border-left: 4px solid var(--callout-border);
+  border-radius: 0 6px 6px 0;
 }
 
 .markdown-body hr {
@@ -125,4 +114,4 @@ html, body {
 
 .markdown-body img { max-width: 100%; }
 
-.error { color: #e06c75; font-weight: 600; }
+.error { color: #b06a7a; font-weight: 600; }
