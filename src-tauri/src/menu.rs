@@ -1,10 +1,13 @@
 use std::path::PathBuf;
 use std::sync::Mutex;
 
-use tauri::menu::{Menu, MenuBuilder, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder};
+use tauri::menu::{
+    CheckMenuItemBuilder, Menu, MenuBuilder, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder,
+};
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 use tauri_plugin_dialog::DialogExt;
 
+use crate::appearance::Appearance;
 use crate::recent_files::RecentFiles;
 
 /// Build the full application menu: an app submenu (Close Window, Quit) and a
@@ -14,6 +17,7 @@ use crate::recent_files::RecentFiles;
 pub fn build_app_menu<R: Runtime>(
     app: &AppHandle<R>,
     recent: &RecentFiles,
+    appearance: Appearance,
 ) -> tauri::Result<Menu<R>> {
     let app_menu = SubmenuBuilder::new(app, "Groot")
         .item(&PredefinedMenuItem::close_window(app, None)?)
@@ -57,9 +61,34 @@ pub fn build_app_menu<R: Runtime>(
         .item(&recent_submenu)
         .build()?;
 
+    let appearance_menu = SubmenuBuilder::new(app, "Appearance")
+        .item(
+            &CheckMenuItemBuilder::new("Light")
+                .id("appearance_light")
+                .checked(appearance == Appearance::Light)
+                .build(app)?,
+        )
+        .item(
+            &CheckMenuItemBuilder::new("Dark")
+                .id("appearance_dark")
+                .checked(appearance == Appearance::Dark)
+                .build(app)?,
+        )
+        .item(
+            &CheckMenuItemBuilder::new("System")
+                .id("appearance_system")
+                .checked(appearance == Appearance::System)
+                .build(app)?,
+        )
+        .build()?;
+    let view_menu = SubmenuBuilder::new(app, "View")
+        .item(&appearance_menu)
+        .build()?;
+
     MenuBuilder::new(app)
         .item(&app_menu)
         .item(&edit_menu)
+        .item(&view_menu)
         .item(&file_menu)
         .build()
 }
@@ -88,6 +117,20 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
             persist_and_refresh(app);
         }
         "no_recent" => {}
+        "appearance_light" | "appearance_dark" | "appearance_system" => {
+            let choice = match id {
+                "appearance_light" => Appearance::Light,
+                "appearance_dark" => Appearance::Dark,
+                _ => Appearance::System,
+            };
+            {
+                let state = app.state::<Mutex<Appearance>>();
+                *state.lock().unwrap() = choice;
+                let _ = choice.save(&crate::appearance_store_path(app));
+            }
+            persist_and_refresh(app);
+            let _ = app.emit("appearance-changed", choice.as_str().to_string());
+        }
         path => {
             let path_buf = PathBuf::from(path);
             if path_buf.exists() {
@@ -132,9 +175,10 @@ fn persist_and_refresh<R: Runtime>(app: &AppHandle<R>) {
 
     let app = app.clone();
     let _ = app.clone().run_on_main_thread(move || {
-        let state = app.state::<Mutex<RecentFiles>>();
-        let guard = state.lock().unwrap();
-        if let Ok(menu) = build_app_menu(&app, &guard) {
+        let appearance = *app.state::<Mutex<Appearance>>().lock().unwrap();
+        let recent_state = app.state::<Mutex<RecentFiles>>();
+        let recent = recent_state.lock().unwrap();
+        if let Ok(menu) = build_app_menu(&app, &recent, appearance) {
             let _ = app.set_menu(menu);
         }
     });

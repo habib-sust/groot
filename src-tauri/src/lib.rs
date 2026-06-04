@@ -8,6 +8,7 @@ use std::sync::Mutex;
 use tauri::Emitter;
 use tauri::Manager;
 
+use appearance::Appearance;
 use recent_files::RecentFiles;
 
 /// Path to the persisted recent-files JSON, inside the app config dir.
@@ -20,6 +21,23 @@ pub(crate) fn recent_store_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) ->
     dir.join("recent_files.json")
 }
 
+/// Path to the persisted appearance choice, inside the app config dir.
+pub(crate) fn appearance_store_path<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+) -> std::path::PathBuf {
+    let dir = app
+        .path()
+        .app_config_dir()
+        .expect("failed to resolve app config dir");
+    let _ = std::fs::create_dir_all(&dir);
+    dir.join("appearance.txt")
+}
+
+#[tauri::command]
+fn get_appearance(state: tauri::State<Mutex<Appearance>>) -> String {
+    state.lock().unwrap().as_str().to_string()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -27,7 +45,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             markdown::parse_markdown,
             markdown::read_markdown_file,
-            markdown::syntax_css
+            markdown::syntax_css,
+            get_appearance
         ])
         .setup(|app| {
             let handle = app.handle();
@@ -35,9 +54,11 @@ pub fn run() {
             let mut recent = RecentFiles::load(&store_path);
             recent.prune_with(|p| p.exists());
             let _ = recent.save(&store_path);
-            let menu = menu::build_app_menu(handle, &recent)?;
+            let appearance = Appearance::load(&appearance_store_path(handle));
+            let menu = menu::build_app_menu(handle, &recent, appearance)?;
             app.set_menu(menu)?;
             app.manage(Mutex::new(recent));
+            app.manage(Mutex::new(appearance));
 
             let drag_handle = app.handle().clone();
             if let Some(window) = app.get_webview_window("main") {
