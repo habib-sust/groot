@@ -312,3 +312,12 @@ function buildOutline() {
 }
 
 listen("toggle-outline", () => toggleOutline());
+
+// ---- Live reload (external file change) ----
+async function reloadInPlace(path) {
+  const y = viewport.scrollTop;
+  await openPath(path);
+  viewport.scrollTop = y;
+}
+
+listen("file-changed", (event) => reloadInPlace(event.payload));

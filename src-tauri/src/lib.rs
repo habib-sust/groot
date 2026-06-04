@@ -2,6 +2,7 @@ mod appearance;
 mod markdown;
 mod menu;
 mod recent_files;
+mod watcher;
 
 use std::sync::Mutex;
 
@@ -85,6 +86,10 @@ pub fn run() {
                     }
                 });
             }
+
+            app.manage(Mutex::new(None::<std::path::PathBuf>));
+            let watch_state = watcher::build_watcher(app.handle());
+            app.manage(Mutex::new(watch_state));
 
             Ok(())
         })

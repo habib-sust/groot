@@ -167,6 +167,7 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
 
 /// Open a file: set title, add to recents, persist, rebuild menu, emit open-file.
 pub fn open_path<R: Runtime>(app: &AppHandle<R>, path: PathBuf) {
+    crate::watcher::watch_file(app, &path);
     if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
         if let Some(window) = app.get_webview_window("main") {
             let _ = window.set_title(name);
