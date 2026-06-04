@@ -39,7 +39,14 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
+body {
+  display: flex;
+}
+
 #viewport {
+  flex: 1;
+  height: 100vh;
+  overflow: auto;
   max-width: 860px;
   margin: 0 auto;
   padding: 40px 32px 80px;
@@ -221,4 +228,53 @@ html, body {
 
 ::highlight(find-current) {
   background-color: rgba(216, 164, 62, 0.65);
+}
+
+#outline {
+  flex: none;
+  width: 240px;
+  height: 100vh;
+  overflow: auto;
+  padding: 24px 8px;
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+}
+
+#outline[hidden] {
+  display: none;
+}
+
+.outline-link {
+  display: block;
+  padding: 3px 8px;
+  border-left: 2px solid transparent;
+  color: var(--muted);
+  font-size: 0.85em;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.outline-link:hover {
+  color: var(--fg);
+}
+
+.outline-link[data-level="1"] { padding-left: 8px; font-weight: 600; }
+.outline-link[data-level="2"] { padding-left: 20px; }
+.outline-link[data-level="3"] { padding-left: 32px; }
+.outline-link[data-level="4"] { padding-left: 44px; }
+.outline-link[data-level="5"] { padding-left: 56px; }
+.outline-link[data-level="6"] { padding-left: 68px; }
+
+.outline-link.active {
+  color: var(--link);
+  border-left-color: var(--link);
+}
+
+.outline-empty {
+  padding: 8px;
+  color: var(--muted);
+  font-size: 0.85em;
 }
