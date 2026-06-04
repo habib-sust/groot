@@ -1,4 +1,5 @@
 mod appearance;
+mod export;
 mod markdown;
 mod menu;
 mod recent_files;
@@ -47,7 +48,8 @@ pub fn run() {
             markdown::parse_markdown,
             markdown::read_markdown_file,
             markdown::syntax_css,
-            get_appearance
+            get_appearance,
+            export::export_html
         ])
         .setup(|app| {
             let handle = app.handle();
