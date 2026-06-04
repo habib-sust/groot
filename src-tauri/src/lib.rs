@@ -24,7 +24,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             markdown::parse_markdown,
-            markdown::read_markdown_file
+            markdown::read_markdown_file,
+            markdown::syntax_css
         ])
         .setup(|app| {
             let handle = app.handle();
