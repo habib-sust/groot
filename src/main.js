@@ -44,7 +44,7 @@ async function openPath(path) {
   }
 }
 
-// Inject the syntect-generated theme CSS (light + dark) once.
+// Inject the syntect-generated theme CSS once.
 async function injectSyntaxTheme() {
   try {
     const css = await invoke("syntax_css");
