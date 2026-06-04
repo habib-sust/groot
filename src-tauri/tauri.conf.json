@@ -10,7 +10,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "groot",
+        "title": "Groot — Markdown Viewer",
         "width": 800,
         "height": 600
       }

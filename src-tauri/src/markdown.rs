@@ -122,14 +122,13 @@ pub fn read_markdown_file(path: String) -> Result<String, String> {
     std::fs::read_to_string(&path).map_err(|e| format!("Failed to read {path}: {e}"))
 }
 
-/// CSS for syntax highlighting: the warm light theme plus the warm-dark theme
-/// wrapped in a prefers-color-scheme media query. Class names match the prefix
-/// used by `parse_markdown`'s highlighter.
+/// CSS for syntax highlighting for the given theme ("light" or "dark"), as
+/// class rules with no media wrapper. The frontend injects the matching one
+/// based on the active appearance. Class names match `parse_markdown`'s prefix.
 #[tauri::command]
-pub fn syntax_css() -> String {
-    let light = css_for_theme_with_class_style(theme(), CLASS_STYLE).unwrap_or_default();
-    let dark = css_for_theme_with_class_style(dark_theme(), CLASS_STYLE).unwrap_or_default();
-    format!("{light}\n@media (prefers-color-scheme: dark) {{\n{dark}\n}}\n")
+pub fn syntax_css(theme: String) -> String {
+    let selected = if theme == "dark" { dark_theme() } else { self::theme() };
+    css_for_theme_with_class_style(selected, CLASS_STYLE).unwrap_or_default()
 }
 
 #[cfg(test)]
@@ -169,26 +168,23 @@ mod tests {
     }
 
     #[test]
-    fn syntax_css_uses_warm_theme() {
-        // The bundled warm theme uses dusty rose (#b06a7a) for strings; its presence
-        // proves the bundled theme loaded (not the built-in fallback).
-        let css = syntax_css().to_lowercase();
-        assert!(css.contains("b06a7a"), "expected warm dusty-rose in css, got: {css}");
+    fn syntax_css_light_is_warm() {
+        let css = syntax_css("light".to_string()).to_lowercase();
+        assert!(css.contains("b06a7a"), "light should use warm rose, got: {css}");
+        assert!(!css.contains("prefers-color-scheme"), "no media wrapper");
     }
 
     #[test]
-    fn syntax_css_has_dark_media() {
-        assert!(
-            syntax_css().contains("prefers-color-scheme"),
-            "syntax_css should emit a dark media block"
-        );
+    fn syntax_css_dark_is_warm_dark() {
+        let css = syntax_css("dark".to_string()).to_lowercase();
+        assert!(css.contains("d98c9a"), "dark should use warm-dark rose, got: {css}");
+        assert!(!css.contains("prefers-color-scheme"), "no media wrapper");
     }
 
     #[test]
-    fn syntax_css_dark_uses_warm_dark() {
-        // The warm-dark theme uses #d98c9a for strings; presence proves it loaded.
-        let css = syntax_css().to_lowercase();
-        assert!(css.contains("d98c9a"), "expected warm-dark rose in css, got: {css}");
+    fn syntax_css_unknown_defaults_to_light() {
+        let css = syntax_css("bogus".to_string()).to_lowercase();
+        assert!(css.contains("b06a7a"), "unknown theme should default to light");
     }
 
     #[test]
