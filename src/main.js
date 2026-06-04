@@ -52,6 +52,7 @@ function addCopyButtons() {
 }
 
 async function render(markdown) {
+  closeFind();
   try {
     viewport.innerHTML = await invoke("parse_markdown", { content: markdown });
     addCopyButtons();
@@ -125,3 +126,105 @@ window.addEventListener("DOMContentLoaded", async () => {
   await applyTheme(choice);
   render(SAMPLE);
 });
+
+// ---- Find (Cmd+F) ----
+const findBar = document.querySelector("#find-bar");
+const findInput = document.querySelector("#find-input");
+const findCount = document.querySelector("#find-count");
+
+let findMatches = [];
+let findIndex = 0;
+
+const highlightsSupported = !!(window.CSS && CSS.highlights && window.Highlight);
+
+function clearFindHighlights() {
+  if (highlightsSupported) {
+    CSS.highlights.delete("find-all");
+    CSS.highlights.delete("find-current");
+  }
+  findMatches = [];
+  findIndex = 0;
+}
+
+function closeFind() {
+  if (!findBar) return;
+  findBar.hidden = true;
+  clearFindHighlights();
+  findInput.value = "";
+  findInput.classList.remove("no-match");
+  findCount.textContent = "";
+}
+
+function openFind() {
+  if (!findBar) return;
+  findBar.hidden = false;
+  findInput.focus();
+  findInput.select();
+  if (findInput.value) runSearch(findInput.value);
+}
+
+function runSearch(query) {
+  clearFindHighlights();
+  const q = query.toLowerCase();
+  if (!q || !highlightsSupported) {
+    findCount.textContent = "";
+    findInput.classList.remove("no-match");
+    return;
+  }
+  const walker = document.createTreeWalker(viewport, NodeFilter.SHOW_TEXT);
+  let node;
+  while ((node = walker.nextNode())) {
+    const text = node.nodeValue.toLowerCase();
+    let from = 0;
+    let idx;
+    while ((idx = text.indexOf(q, from)) !== -1) {
+      const range = document.createRange();
+      range.setStart(node, idx);
+      range.setEnd(node, idx + q.length);
+      findMatches.push(range);
+      from = idx + q.length;
+    }
+  }
+  if (findMatches.length === 0) {
+    findCount.textContent = "0/0";
+    findInput.classList.add("no-match");
+    return;
+  }
+  findInput.classList.remove("no-match");
+  CSS.highlights.set("find-all", new Highlight(...findMatches));
+  setCurrent(0);
+}
+
+function setCurrent(i) {
+  if (findMatches.length === 0) return;
+  findIndex = (i + findMatches.length) % findMatches.length;
+  const range = findMatches[findIndex];
+  if (highlightsSupported) {
+    CSS.highlights.set("find-current", new Highlight(range));
+  }
+  const el = range.startContainer.parentElement;
+  if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
+  findCount.textContent = `${findIndex + 1}/${findMatches.length}`;
+}
+
+function goTo(delta) {
+  if (findMatches.length > 0) setCurrent(findIndex + delta);
+}
+
+if (findBar) {
+  findInput.addEventListener("input", () => runSearch(findInput.value));
+  findInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      goTo(e.shiftKey ? -1 : 1);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      closeFind();
+    }
+  });
+  document.querySelector("#find-prev").addEventListener("click", () => goTo(-1));
+  document.querySelector("#find-next").addEventListener("click", () => goTo(1));
+  document.querySelector("#find-close").addEventListener("click", () => closeFind());
+}
+
+listen("find", () => openFind());
