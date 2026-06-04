@@ -1,7 +1,8 @@
 use std::sync::OnceLock;
 
 use pulldown_cmark::{CodeBlockKind, CowStr, Event, Options, Parser, Tag, TagEnd};
-use syntect::highlighting::ThemeSet;
+use std::io::Cursor;
+use syntect::highlighting::{Theme, ThemeSet};
 use syntect::html::{css_for_theme_with_class_style, ClassStyle, ClassedHTMLGenerator};
 use syntect::parsing::SyntaxSet;
 use syntect::util::LinesWithEndings;
@@ -18,6 +19,17 @@ fn syntax_set() -> &'static SyntaxSet {
 fn theme_set() -> &'static ThemeSet {
     static TS: OnceLock<ThemeSet> = OnceLock::new();
     TS.get_or_init(ThemeSet::load_defaults)
+}
+
+/// The bundled One-Dark theme (compiled into the binary), used for dark-mode code.
+const ONEDARK_TMTHEME: &[u8] = include_bytes!("../themes/onedark.tmTheme");
+
+fn dark_theme() -> &'static Theme {
+    static DARK: OnceLock<Theme> = OnceLock::new();
+    DARK.get_or_init(|| {
+        ThemeSet::load_from_reader(&mut Cursor::new(ONEDARK_TMTHEME))
+            .unwrap_or_else(|_| theme_set().themes["base16-ocean.dark"].clone())
+    })
 }
 
 fn escape_html(s: &str) -> String {
@@ -110,11 +122,7 @@ pub fn syntax_css() -> String {
         .get("InspiredGitHub")
         .and_then(|t| css_for_theme_with_class_style(t, CLASS_STYLE).ok())
         .unwrap_or_default();
-    let dark = ts
-        .themes
-        .get("base16-ocean.dark")
-        .and_then(|t| css_for_theme_with_class_style(t, CLASS_STYLE).ok())
-        .unwrap_or_default();
+    let dark = css_for_theme_with_class_style(dark_theme(), CLASS_STYLE).unwrap_or_default();
     format!("{light}\n@media (prefers-color-scheme: dark) {{\n{dark}\n}}\n")
 }
 
@@ -162,6 +170,14 @@ mod tests {
             css.contains("prefers-color-scheme: dark"),
             "css should contain a dark media block"
         );
+    }
+
+    #[test]
+    fn dark_theme_uses_onedark_palette() {
+        // The bundled One-Dark theme uses coral (#e06c75) for strings; the built-in
+        // default dark theme does not. Its presence proves the bundled theme loaded.
+        let css = syntax_css().to_lowercase();
+        assert!(css.contains("e06c75"), "expected One-Dark coral in css, got: {css}");
     }
 
     #[test]
