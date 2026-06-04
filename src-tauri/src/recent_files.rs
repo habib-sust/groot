@@ -10,10 +10,6 @@ pub struct RecentFiles {
 }
 
 impl RecentFiles {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     /// Insert `path` at the front, removing any existing duplicate, capped at MAX_RECENT.
     pub fn add(&mut self, path: PathBuf) {
         self.items.retain(|p| p != &path);
@@ -51,7 +47,7 @@ mod tests {
 
     #[test]
     fn add_inserts_most_recent_first() {
-        let mut r = RecentFiles::new();
+        let mut r = RecentFiles::default();
         r.add(PathBuf::from("/a.md"));
         r.add(PathBuf::from("/b.md"));
         assert_eq!(r.list(), &[PathBuf::from("/b.md"), PathBuf::from("/a.md")]);
@@ -59,7 +55,7 @@ mod tests {
 
     #[test]
     fn add_dedups_and_moves_to_front() {
-        let mut r = RecentFiles::new();
+        let mut r = RecentFiles::default();
         r.add(PathBuf::from("/a.md"));
         r.add(PathBuf::from("/b.md"));
         r.add(PathBuf::from("/a.md"));
@@ -68,7 +64,7 @@ mod tests {
 
     #[test]
     fn add_caps_at_ten() {
-        let mut r = RecentFiles::new();
+        let mut r = RecentFiles::default();
         for i in 0..15 {
             r.add(PathBuf::from(format!("/{i}.md")));
         }
@@ -79,7 +75,7 @@ mod tests {
 
     #[test]
     fn clear_empties() {
-        let mut r = RecentFiles::new();
+        let mut r = RecentFiles::default();
         r.add(PathBuf::from("/a.md"));
         r.clear();
         assert!(r.list().is_empty());
@@ -87,7 +83,7 @@ mod tests {
 
     #[test]
     fn save_then_load_roundtrip() {
-        let mut r = RecentFiles::new();
+        let mut r = RecentFiles::default();
         r.add(PathBuf::from("/a.md"));
         r.add(PathBuf::from("/b.md"));
         let mut path = std::env::temp_dir();
