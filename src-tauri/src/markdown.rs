@@ -32,6 +32,17 @@ fn theme() -> &'static Theme {
     })
 }
 
+/// The bundled warm-dark syntax theme, used under macOS dark mode.
+const WARM_DARK_TMTHEME: &[u8] = include_bytes!("../themes/groot-warm-dark.tmTheme");
+
+fn dark_theme() -> &'static Theme {
+    static DARK: OnceLock<Theme> = OnceLock::new();
+    DARK.get_or_init(|| {
+        ThemeSet::load_from_reader(&mut Cursor::new(WARM_DARK_TMTHEME))
+            .unwrap_or_else(|_| theme_set().themes["base16-ocean.dark"].clone())
+    })
+}
+
 fn escape_html(s: &str) -> String {
     s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;")
 }
@@ -111,11 +122,14 @@ pub fn read_markdown_file(path: String) -> Result<String, String> {
     std::fs::read_to_string(&path).map_err(|e| format!("Failed to read {path}: {e}"))
 }
 
-/// CSS for syntax highlighting using the single bundled warm theme (no light/dark
-/// split). Class names match the prefix used by `parse_markdown`'s highlighter.
+/// CSS for syntax highlighting: the warm light theme plus the warm-dark theme
+/// wrapped in a prefers-color-scheme media query. Class names match the prefix
+/// used by `parse_markdown`'s highlighter.
 #[tauri::command]
 pub fn syntax_css() -> String {
-    css_for_theme_with_class_style(theme(), CLASS_STYLE).unwrap_or_default()
+    let light = css_for_theme_with_class_style(theme(), CLASS_STYLE).unwrap_or_default();
+    let dark = css_for_theme_with_class_style(dark_theme(), CLASS_STYLE).unwrap_or_default();
+    format!("{light}\n@media (prefers-color-scheme: dark) {{\n{dark}\n}}\n")
 }
 
 #[cfg(test)]
@@ -163,11 +177,18 @@ mod tests {
     }
 
     #[test]
-    fn syntax_css_has_no_dark_media() {
+    fn syntax_css_has_dark_media() {
         assert!(
-            !syntax_css().contains("prefers-color-scheme"),
-            "single fixed theme should not emit a dark media query"
+            syntax_css().contains("prefers-color-scheme"),
+            "syntax_css should emit a dark media block"
         );
+    }
+
+    #[test]
+    fn syntax_css_dark_uses_warm_dark() {
+        // The warm-dark theme uses #d98c9a for strings; presence proves it loaded.
+        let css = syntax_css().to_lowercase();
+        assert!(css.contains("d98c9a"), "expected warm-dark rose in css, got: {css}");
     }
 
     #[test]
