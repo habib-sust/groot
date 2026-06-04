@@ -24,12 +24,15 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             markdown::parse_markdown,
-            markdown::read_markdown_file
+            markdown::read_markdown_file,
+            markdown::syntax_css
         ])
         .setup(|app| {
             let handle = app.handle();
             let store_path = recent_store_path(handle);
-            let recent = RecentFiles::load(&store_path);
+            let mut recent = RecentFiles::load(&store_path);
+            recent.prune_with(|p| p.exists());
+            let _ = recent.save(&store_path);
             let menu = menu::build_app_menu(handle, &recent)?;
             app.set_menu(menu)?;
             app.manage(Mutex::new(recent));
