@@ -1,3 +1,4 @@
+mod appearance;
 mod markdown;
 mod menu;
 mod recent_files;
