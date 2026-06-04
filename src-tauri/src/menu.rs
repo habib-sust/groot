@@ -63,8 +63,7 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
     match id {
         "open_file" => {
             let app = app.clone();
-            app.clone()
-                .dialog()
+            app.dialog()
                 .file()
                 .add_filter("Markdown", &["md", "markdown"])
                 .pick_file(move |file_path| {
@@ -100,16 +99,23 @@ fn on_file_chosen<R: Runtime>(app: &AppHandle<R>, path: PathBuf) {
     let _ = app.emit("open-file", path.to_string_lossy().to_string());
 }
 
-/// Save the store to disk and rebuild + set the menu from current state.
+/// Save the store to disk (any thread), then rebuild + set the menu on the
+/// main thread. The dialog `pick_file` callback runs on a background thread,
+/// and macOS menu construction (muda) must happen on the main thread.
 fn persist_and_refresh<R: Runtime>(app: &AppHandle<R>) {
     let store_path = crate::recent_store_path(app);
-    let menu = {
+    {
         let state = app.state::<Mutex<RecentFiles>>();
         let guard = state.lock().unwrap();
         let _ = guard.save(&store_path);
-        build_app_menu(app, &guard)
-    };
-    if let Ok(menu) = menu {
-        let _ = app.set_menu(menu);
     }
+
+    let app = app.clone();
+    let _ = app.clone().run_on_main_thread(move || {
+        let state = app.state::<Mutex<RecentFiles>>();
+        let guard = state.lock().unwrap();
+        if let Ok(menu) = build_app_menu(&app, &guard) {
+            let _ = app.set_menu(menu);
+        }
+    });
 }
