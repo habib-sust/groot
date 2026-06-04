@@ -107,6 +107,11 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
 /// Add the chosen path to recents, persist, rebuild the menu, and tell the
 /// webview to render it.
 fn on_file_chosen<R: Runtime>(app: &AppHandle<R>, path: PathBuf) {
+    if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+        if let Some(window) = app.get_webview_window("main") {
+            let _ = window.set_title(name);
+        }
+    }
     {
         let state = app.state::<Mutex<RecentFiles>>();
         state.lock().unwrap().add(path.clone());
