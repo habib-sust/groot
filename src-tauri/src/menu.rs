@@ -87,8 +87,14 @@ pub fn build_app_menu<R: Runtime>(
                 .build(app)?,
         )
         .build()?;
+    let toggle_outline = MenuItemBuilder::new("Toggle Outline")
+        .id("toggle_outline")
+        .accelerator("CmdOrCtrl+Shift+O")
+        .build(app)?;
     let view_menu = SubmenuBuilder::new(app, "View")
         .item(&appearance_menu)
+        .separator()
+        .item(&toggle_outline)
         .build()?;
 
     MenuBuilder::new(app)
@@ -124,6 +130,9 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
         }
         "find" => {
             let _ = app.emit("find", ());
+        }
+        "toggle_outline" => {
+            let _ = app.emit("toggle-outline", ());
         }
         "no_recent" => {}
         "appearance_light" | "appearance_dark" | "appearance_system" => {
