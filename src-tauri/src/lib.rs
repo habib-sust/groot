@@ -88,7 +88,7 @@ pub fn run() {
             }
 
             app.manage(Mutex::new(None::<std::path::PathBuf>));
-            let watch_state = watcher::build_watcher(&app.handle().clone());
+            let watch_state = watcher::build_watcher(app.handle());
             app.manage(Mutex::new(watch_state));
 
             Ok(())

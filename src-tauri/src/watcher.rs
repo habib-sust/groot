@@ -48,8 +48,11 @@ pub fn build_watcher<R: Runtime>(app: &AppHandle<R>) -> WatchState {
 
 /// Set the current file and re-point the watcher at its parent directory.
 pub fn watch_file<R: Runtime>(app: &AppHandle<R>, path: &Path) {
-    *app.state::<Mutex<Option<PathBuf>>>().lock().unwrap() = Some(path.to_path_buf());
-    let dir = match path.parent() {
+    // Canonicalize so the stored path matches the resolved paths notify reports
+    // (e.g. macOS /tmp -> /private/tmp); otherwise changes are silently missed.
+    let canonical = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
+    *app.state::<Mutex<Option<PathBuf>>>().lock().unwrap() = Some(canonical.clone());
+    let dir = match canonical.parent() {
         Some(d) => d.to_path_buf(),
         None => return,
     };
