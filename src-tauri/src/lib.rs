@@ -1,5 +1,22 @@
 mod markdown;
+mod menu;
 mod recent_files;
+
+use std::sync::Mutex;
+
+use tauri::Manager;
+
+use recent_files::RecentFiles;
+
+/// Path to the persisted recent-files JSON, inside the app config dir.
+pub(crate) fn recent_store_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> std::path::PathBuf {
+    let dir = app
+        .path()
+        .app_config_dir()
+        .expect("failed to resolve app config dir");
+    let _ = std::fs::create_dir_all(&dir);
+    dir.join("recent_files.json")
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -9,6 +26,18 @@ pub fn run() {
             markdown::parse_markdown,
             markdown::read_markdown_file
         ])
+        .setup(|app| {
+            let handle = app.handle();
+            let store_path = recent_store_path(handle);
+            let recent = RecentFiles::load(&store_path);
+            let menu = menu::build_app_menu(handle, &recent)?;
+            app.set_menu(menu)?;
+            app.manage(Mutex::new(recent));
+            Ok(())
+        })
+        .on_menu_event(|app, event| {
+            menu::handle_menu_event(app, event.id().as_ref());
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
