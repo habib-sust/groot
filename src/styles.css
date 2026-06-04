@@ -280,7 +280,10 @@ body {
 }
 
 @media print {
-  :root {
+  /* Both selectors so the light print palette wins even when data-theme="dark"
+     is set (equal specificity to :root[data-theme="dark"], later in source). */
+  :root,
+  :root[data-theme="dark"] {
     --bg: #ffffff;
     --fg: #24292f;
     --heading: #1f2328;

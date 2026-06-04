@@ -350,7 +350,7 @@ async function exportHtml() {
     let name = "untitled.html";
     if (currentPath) {
       const base = currentPath.split("/").pop();
-      name = `${base.replace(/\.md$/i, "")}.html`;
+      name = `${base.replace(/\.(md|markdown)$/i, "")}.html`;
     }
     await invoke("export_html", { body, css, name });
   } catch (e) {
