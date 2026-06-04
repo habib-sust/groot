@@ -25,9 +25,15 @@ pub fn build_app_menu<R: Runtime>(
         .item(&PredefinedMenuItem::quit(app, None)?)
         .build()?;
 
+    let find_item = MenuItemBuilder::new("Find…")
+        .id("find")
+        .accelerator("CmdOrCtrl+F")
+        .build(app)?;
     let edit_menu = SubmenuBuilder::new(app, "Edit")
         .item(&PredefinedMenuItem::copy(app, None)?)
         .item(&PredefinedMenuItem::select_all(app, None)?)
+        .separator()
+        .item(&find_item)
         .build()?;
 
     let open_file = MenuItemBuilder::new("Open File…")
@@ -115,6 +121,9 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
                 state.lock().unwrap().clear();
             }
             persist_and_refresh(app);
+        }
+        "find" => {
+            let _ = app.emit("find", ());
         }
         "no_recent" => {}
         "appearance_light" | "appearance_dark" | "appearance_system" => {

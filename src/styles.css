@@ -157,3 +157,68 @@ html, body {
   color: var(--fg);
   border-color: var(--link);
 }
+
+#find-bar {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+#find-bar[hidden] {
+  display: none;
+}
+
+#find-input {
+  font: inherit;
+  font-size: 0.9em;
+  width: 180px;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--code-bg);
+  color: var(--fg);
+  outline: none;
+}
+
+#find-input.no-match {
+  border-color: #cf4d4d;
+}
+
+#find-count {
+  min-width: 38px;
+  text-align: center;
+  font-size: 0.8em;
+  color: var(--muted);
+}
+
+#find-bar button {
+  font: inherit;
+  font-size: 0.85em;
+  padding: 2px 7px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--code-bg);
+  color: var(--fg);
+  cursor: pointer;
+}
+
+#find-bar button:hover {
+  border-color: var(--link);
+}
+
+::highlight(find-all) {
+  background-color: rgba(216, 164, 62, 0.3);
+}
+
+::highlight(find-current) {
+  background-color: rgba(216, 164, 62, 0.65);
+}
