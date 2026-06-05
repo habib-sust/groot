@@ -11,11 +11,18 @@
     <nav id="outline" hidden></nav>
     <main id="viewport"></main>
     <div id="find-bar" hidden>
-      <input id="find-input" type="text" placeholder="Find" autocomplete="off" spellcheck="false" />
-      <span id="find-count"></span>
-      <button id="find-prev" type="button" title="Previous (Shift+Enter)">↑</button>
-      <button id="find-next" type="button" title="Next (Enter)">↓</button>
-      <button id="find-close" type="button" title="Close (Esc)">✕</button>
+      <div class="find-row">
+        <input id="find-input" type="text" placeholder="Find" autocomplete="off" spellcheck="false" />
+        <span id="find-count"></span>
+        <button id="find-prev" type="button" title="Previous (Shift+Enter)">↑</button>
+        <button id="find-next" type="button" title="Next (Enter)">↓</button>
+        <button id="find-close" type="button" title="Close (Esc)">✕</button>
+      </div>
+      <div class="find-row">
+        <input id="replace-input" type="text" placeholder="Replace" autocomplete="off" spellcheck="false" />
+        <button id="replace-one" type="button" title="Replace current match">Replace</button>
+        <button id="replace-all" type="button" title="Replace all matches">All</button>
+      </div>
     </div>
     <div id="unsaved-modal" hidden>
       <div class="modal-card">
