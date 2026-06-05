@@ -89,6 +89,9 @@ async function render(markdown) {
       })
     );
     dirty = false;
+    // Find highlights are tied to the old DOM; clear and (if the bar is open) re-run.
+    clearFindHighlights();
+    if (findBar && !findBar.hidden) runSearch(findInput.value);
   } catch (e) {
     crepe = null;
     showError(String(e));
