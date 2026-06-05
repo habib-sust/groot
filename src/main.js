@@ -79,6 +79,7 @@ async function render(markdown) {
       await crepe.destroy();
       crepe = null;
     }
+    clearTimeout(outlineDebounce);
     viewport.innerHTML = "";
     crepe = new Crepe({ root: viewport, defaultValue: markdown });
     await crepe.create();
@@ -86,12 +87,18 @@ async function render(markdown) {
       listener.markdownUpdated(() => {
         dirty = true;
         updateTitle();
+        // Keep the outline current while editing (only if it's visible).
+        if (outline && !outline.hidden) {
+          clearTimeout(outlineDebounce);
+          outlineDebounce = setTimeout(buildOutline, 300);
+        }
       })
     );
     dirty = false;
     // Find highlights are tied to the old DOM; clear and (if the bar is open) re-run.
     clearFindHighlights();
     if (findBar && !findBar.hidden) runSearch(findInput.value);
+    buildOutline();
   } catch (e) {
     crepe = null;
     showError(String(e));
@@ -272,6 +279,7 @@ listen("find", () => openFind());
 // ---- Outline / TOC ----
 const outline = document.querySelector("#outline");
 let outlineObserver = null;
+let outlineDebounce = null;
 
 function slugify(text) {
   const base = text
@@ -283,7 +291,9 @@ function slugify(text) {
 }
 
 function toggleOutline() {
-  if (outline) outline.hidden = !outline.hidden;
+  if (!outline) return;
+  outline.hidden = !outline.hidden;
+  if (!outline.hidden) buildOutline();
 }
 
 function buildOutline() {
