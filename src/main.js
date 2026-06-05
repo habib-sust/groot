@@ -99,9 +99,19 @@ async function render(markdown) {
     crepe = new Crepe({
       root: viewport,
       defaultValue: markdown,
+      // Disable LaTeX so $…$ doesn't render editor-only math that Export/Print
+      // (pulldown-cmark, no math) would silently drop — editor matches export.
+      features: {
+        [CrepeFeature.Latex]: false,
+      },
       featureConfigs: {
         // Crepe's code-block copy button copies silently; surface feedback.
         [CrepeFeature.CodeMirror]: { onCopy: () => showToast("Copied!") },
+        // Slash menu: drop Image (URL-only; no local-file pipeline) and Math
+        // (not supported in export). Keep code block + table, lists, text/headings.
+        [CrepeFeature.BlockEdit]: {
+          advancedGroup: { image: null, math: null },
+        },
       },
     });
     await crepe.create();
