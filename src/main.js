@@ -4,7 +4,6 @@ import "@milkdown/crepe/theme/common/style.css";
 import "@milkdown/crepe/theme/frame.css";
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
-const { getCurrentWebviewWindow } = window.__TAURI__.webviewWindow;
 
 const viewport = document.querySelector("#viewport");
 
@@ -450,10 +449,11 @@ async function printDocument() {
       window.removeEventListener("afterprint", cleanup);
     };
     window.addEventListener("afterprint", cleanup);
-    // window.print() is a no-op in WKWebView; use Tauri's native webview print,
-    // which honors the @media print rules above (hides the editor, shows the
-    // clean container). Requires the core:webview:allow-print capability.
-    await getCurrentWebviewWindow().print();
+    // On macOS Tauri overrides window.print() to invoke the native print command
+    // (plugin:webview|print) — requires the core:webview:allow-print capability.
+    // It honors the @media print rules above (hides the editor, shows the clean
+    // container). Awaited so a permission error surfaces via the catch.
+    await window.print();
   } catch (e) {
     showError(String(e));
   }
