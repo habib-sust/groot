@@ -1,5 +1,17 @@
 import stylesText from "./styles.css?raw";
 import { Crepe, CrepeFeature } from "@milkdown/crepe";
+import { $prose } from "@milkdown/kit/utils";
+import { editorViewCtx } from "@milkdown/kit/core";
+import {
+  search,
+  setSearchState,
+  findNext,
+  findPrev,
+  replaceNext,
+  replaceAll,
+  getMatchHighlights,
+  SearchQuery,
+} from "prosemirror-search";
 import "@milkdown/crepe/theme/common/style.css";
 import "@milkdown/crepe/theme/frame.css";
 const { invoke } = window.__TAURI__.core;
@@ -10,6 +22,7 @@ const viewport = document.querySelector("#viewport");
 let currentPath = null;
 let currentSource = "";
 let crepe = null;
+let searchView = null;
 let dirty = false;
 
 const SAMPLE = `# Welcome to Groot
@@ -114,7 +127,9 @@ async function render(markdown) {
         },
       },
     });
+    crepe.editor.use($prose(() => search()));
     await crepe.create();
+    searchView = crepe.editor.ctx.get(editorViewCtx);
     crepe.on((listener) =>
       listener.markdownUpdated(() => {
         dirty = true;
