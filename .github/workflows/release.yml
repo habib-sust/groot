@@ -52,6 +52,8 @@ jobs:
   bump-cask:
     needs: release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -61,8 +63,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          ASSET="$(gh release view "$GITHUB_REF_NAME" -R habib-sust/groot \
-            --json assets -q '.assets[].name | select(endswith(".dmg"))' | head -n1)"
+          ASSETS="$(gh release view "$GITHUB_REF_NAME" -R habib-sust/groot \
+            --json assets -q '.assets[].name | select(endswith(".dmg"))')"
+          ASSET="$(printf '%s\n' "$ASSETS" | head -n1)"
           if [ -z "$ASSET" ]; then
             echo "::error::no .dmg asset found on release $GITHUB_REF_NAME"
             exit 1
