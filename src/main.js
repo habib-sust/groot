@@ -1,3 +1,4 @@
+import stylesText from "./styles.css?raw";
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 
@@ -341,9 +342,8 @@ async function injectPrintSyntax() {
 
 async function exportHtml() {
   try {
-    const baseCss = await (await fetch("styles.css")).text();
     const codeCss = await invoke("syntax_css", { theme: "light" });
-    const css = `${baseCss}\n${codeCss}`;
+    const css = `${stylesText}\n${codeCss}`;
     const clone = viewport.cloneNode(true);
     clone.querySelectorAll(".copy-btn").forEach((b) => b.remove());
     const body = clone.innerHTML;
