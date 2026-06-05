@@ -1,9 +1,10 @@
 import stylesText from "./styles.css?raw";
-import { Crepe } from "@milkdown/crepe";
+import { Crepe, CrepeFeature } from "@milkdown/crepe";
 import "@milkdown/crepe/theme/common/style.css";
 import "@milkdown/crepe/theme/frame.css";
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
+const { getCurrentWebviewWindow } = window.__TAURI__.webviewWindow;
 
 const viewport = document.querySelector("#viewport");
 
@@ -35,6 +36,21 @@ fn main() {
 
 function showError(message) {
   viewport.innerHTML = `<p class="error">⚠️ ${message}</p>`;
+}
+
+// Transient bottom-center toast (e.g. copy confirmation).
+let toastTimer = null;
+function showToast(message) {
+  let el = document.getElementById("toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "toast";
+    document.body.appendChild(el);
+  }
+  el.textContent = message;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 1200);
 }
 
 function basename(p) {
@@ -81,7 +97,14 @@ async function render(markdown) {
     }
     clearTimeout(outlineDebounce);
     viewport.innerHTML = "";
-    crepe = new Crepe({ root: viewport, defaultValue: markdown });
+    crepe = new Crepe({
+      root: viewport,
+      defaultValue: markdown,
+      featureConfigs: {
+        // Crepe's code-block copy button copies silently; surface feedback.
+        [CrepeFeature.CodeMirror]: { onCopy: () => showToast("Copied!") },
+      },
+    });
     await crepe.create();
     crepe.on((listener) =>
       listener.markdownUpdated(() => {
@@ -427,7 +450,10 @@ async function printDocument() {
       window.removeEventListener("afterprint", cleanup);
     };
     window.addEventListener("afterprint", cleanup);
-    window.print();
+    // window.print() is a no-op in WKWebView; use Tauri's native webview print,
+    // which honors the @media print rules above (hides the editor, shows the
+    // clean container). Requires the core:webview:allow-print capability.
+    await getCurrentWebviewWindow().print();
   } catch (e) {
     showError(String(e));
   }

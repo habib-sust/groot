@@ -43,6 +43,16 @@ body {
   display: flex;
 }
 
+/* Standalone exported document: Rust wrap_html emits <body class="markdown-body">,
+   so neutralize the app-shell flex layout and present a centered reading column.
+   The app's own <body> never carries this class, so this rule only affects exports. */
+body.markdown-body {
+  display: block;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px 32px 80px;
+}
+
 #viewport {
   flex: 1;
   height: 100vh;
@@ -259,6 +269,28 @@ body {
   display: none;
 }
 
+/* Transient toast (copy confirmation, etc.). */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--fg);
+  color: var(--bg);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.85em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 200;
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 @media print {
   /* Both selectors so the light print palette wins even when data-theme="dark"
      is set (equal specificity to :root[data-theme="dark"], later in source). */
@@ -283,7 +315,8 @@ body {
   #viewport,
   #outline,
   #find-bar,
-  #unsaved-modal {
+  #unsaved-modal,
+  #toast {
     display: none !important;
   }
 
