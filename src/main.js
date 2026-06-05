@@ -372,18 +372,27 @@ async function injectPrintSyntax() {
   }
 }
 
+// Render the current document to clean, sanitized, syntect-highlighted HTML via
+// the Rust pipeline (not by scraping the editable DOM). Shared by Export + Print.
+async function renderCleanHtml() {
+  const md = crepe ? crepe.getMarkdown() : currentSource;
+  const bodyHtml = await invoke("parse_markdown", { content: md });
+  const codeCss = await invoke("syntax_css", { theme: "light" });
+  return { bodyHtml, codeCss };
+}
+
 async function exportHtml() {
+  if (!crepe) return;
   try {
-    const codeCss = await invoke("syntax_css", { theme: "light" });
+    const { bodyHtml, codeCss } = await renderCleanHtml();
     const css = `${stylesText}\n${codeCss}`;
-    const clone = viewport.cloneNode(true);
-    const body = clone.innerHTML;
     let name = "untitled.html";
     if (currentPath) {
-      const base = currentPath.split("/").pop();
-      name = `${base.replace(/\.(md|markdown)$/i, "")}.html`;
+      name = `${basename(currentPath).replace(/\.(md|markdown)$/i, "")}.html`;
     }
-    await invoke("export_html", { body, css, name });
+    // wrap_html (Rust) already wraps body in <body class="markdown-body">,
+    // so pass the parsed HTML directly — no extra wrapper element.
+    await invoke("export_html", { body: bodyHtml, css, name });
   } catch (e) {
     showError(String(e));
   }
