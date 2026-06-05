@@ -399,6 +399,9 @@ async function exportHtml() {
 }
 
 async function printDocument() {
+  // Remove any stale container left by a previous print whose `afterprint`
+  // never fired (WKWebView can skip it, e.g. on cancel); also guards double-invoke.
+  document.getElementById("print-container")?.remove();
   try {
     const { bodyHtml } = await renderCleanHtml();
     const container = document.createElement("div");
