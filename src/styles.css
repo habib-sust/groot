@@ -313,3 +313,30 @@ body {
     padding: 0;
   }
 }
+
+/* Crepe editor fills the viewport column */
+#viewport .milkdown {
+  height: 100%;
+}
+
+/* Dark-mode bridge: re-skin Crepe to the app's dark palette.
+   Variable names match those defined in @milkdown/crepe theme/frame.css (.milkdown root). */
+:root[data-theme="dark"] .milkdown {
+  --crepe-color-background: #2e3138;
+  --crepe-color-on-background: #c8c4bb;
+  --crepe-color-surface: #2e3138;
+  --crepe-color-surface-low: #272a30;
+  --crepe-color-on-surface: #c8c4bb;
+  --crepe-color-on-surface-variant: #9a968d;
+  --crepe-color-outline: #3a3f47;
+  --crepe-color-primary: #d98c9a;
+  --crepe-color-secondary: #3a3f47;
+  --crepe-color-on-secondary: #c8c4bb;
+  --crepe-color-inverse: #c8c4bb;
+  --crepe-color-on-inverse: #2e3138;
+  --crepe-color-inline-code: #d98c9a;
+  --crepe-color-inline-area: #3a3e44;
+  --crepe-color-error: #ff6b6b;
+  --crepe-color-hover: #3a3f47;
+  --crepe-color-selected: #3a3f47;
+}
