@@ -398,7 +398,26 @@ async function exportHtml() {
   }
 }
 
-listen("print", () => window.print());
+async function printDocument() {
+  try {
+    const { bodyHtml } = await renderCleanHtml();
+    const container = document.createElement("div");
+    container.id = "print-container";
+    container.className = "markdown-body";
+    container.innerHTML = bodyHtml;
+    document.body.appendChild(container);
+    const cleanup = () => {
+      container.remove();
+      window.removeEventListener("afterprint", cleanup);
+    };
+    window.addEventListener("afterprint", cleanup);
+    window.print();
+  } catch (e) {
+    showError(String(e));
+  }
+}
+
+listen("print", () => printDocument());
 listen("export-html", () => exportHtml());
 
 // ---- Save / New / Close ----
