@@ -8,8 +8,12 @@ pub fn write_file(path: String, content: String) -> Result<(), String> {
 
 /// Save-As: open a native save dialog, write the content to the chosen path,
 /// and return that path (None if cancelled).
+///
+/// MUST be `async` so Tauri runs it on a worker thread, not the main thread:
+/// `blocking_save_file()` blocks its caller, and blocking the main thread
+/// freezes the whole app (the bug where Cancel hung the UI).
 #[tauri::command]
-pub fn save_file_as(
+pub async fn save_file_as(
     app: tauri::AppHandle,
     content: String,
     suggested_name: String,
