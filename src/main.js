@@ -142,9 +142,9 @@ async function render(markdown) {
       })
     );
     dirty = false;
-    // Find highlights are tied to the old DOM; clear and (if the bar is open) re-run.
-    clearFindHighlights();
-    if (findBar && !findBar.hidden) runSearch(findInput.value);
+    // Editor (and its search plugin) is recreated per load; re-apply the query
+    // if the find bar is open so highlights reflect the new document.
+    if (findBar && !findBar.hidden && findInput.value) applySearch();
     buildOutline();
   } catch (e) {
     crepe = null;
@@ -226,27 +226,51 @@ const findBar = document.querySelector("#find-bar");
 const findInput = document.querySelector("#find-input");
 const findCount = document.querySelector("#find-count");
 
-let findMatches = [];
-let findIndex = 0;
+// The replace input element exists after Task 4 adds its markup; null until then.
+const replaceInput = document.querySelector("#replace-input");
 
-const highlightsSupported = !!(window.CSS && CSS.highlights && window.Highlight);
-
-function clearFindHighlights() {
-  if (highlightsSupported) {
-    CSS.highlights.delete("find-all");
-    CSS.highlights.delete("find-current");
-  }
-  findMatches = [];
-  findIndex = 0;
+// Build a SearchQuery from the current inputs (case-insensitive literal match).
+function currentQuery() {
+  return new SearchQuery({
+    search: findInput.value,
+    replace: replaceInput ? replaceInput.value : "",
+    caseSensitive: false,
+  });
 }
 
-function closeFind() {
-  if (!findBar) return;
-  findBar.hidden = true;
-  clearFindHighlights();
-  findInput.value = "";
+// Push the current query into the editor's search plugin and refresh the count.
+function applySearch() {
+  if (!searchView) return;
+  searchView.dispatch(setSearchState(searchView.state.tr, currentQuery()));
+  updateFindCount();
+}
+
+function updateFindCount() {
+  if (!searchView || !findInput.value) {
+    findCount.textContent = "";
+    findInput.classList.remove("no-match");
+    return;
+  }
+  const matches = getMatchHighlights(searchView.state).find();
+  const total = matches.length;
+  if (total === 0) {
+    findCount.textContent = "0/0";
+    findInput.classList.add("no-match");
+    return;
+  }
   findInput.classList.remove("no-match");
-  findCount.textContent = "";
+  const sel = searchView.state.selection.from;
+  let idx = matches.findIndex((m) => m.from <= sel && sel <= m.to);
+  if (idx < 0) idx = 0;
+  findCount.textContent = `${idx + 1}/${total}`;
+}
+
+function goTo(delta) {
+  if (!searchView) return;
+  if (delta > 0) findNext(searchView.state, searchView.dispatch);
+  else findPrev(searchView.state, searchView.dispatch);
+  searchView.focus();
+  updateFindCount();
 }
 
 function openFind() {
@@ -254,59 +278,23 @@ function openFind() {
   findBar.hidden = false;
   findInput.focus();
   findInput.select();
-  if (findInput.value) runSearch(findInput.value);
+  if (findInput.value) applySearch();
 }
 
-function runSearch(query) {
-  clearFindHighlights();
-  const q = query.toLowerCase();
-  if (!q || !highlightsSupported) {
-    findCount.textContent = "";
-    findInput.classList.remove("no-match");
-    return;
+function closeFind() {
+  if (!findBar) return;
+  findBar.hidden = true;
+  if (searchView) {
+    searchView.dispatch(setSearchState(searchView.state.tr, new SearchQuery({ search: "" })));
+    searchView.focus();
   }
-  const walker = document.createTreeWalker(viewport, NodeFilter.SHOW_TEXT);
-  let node;
-  while ((node = walker.nextNode())) {
-    const text = node.nodeValue.toLowerCase();
-    let from = 0;
-    let idx;
-    while ((idx = text.indexOf(q, from)) !== -1) {
-      const range = document.createRange();
-      range.setStart(node, idx);
-      range.setEnd(node, idx + q.length);
-      findMatches.push(range);
-      from = idx + q.length;
-    }
-  }
-  if (findMatches.length === 0) {
-    findCount.textContent = "0/0";
-    findInput.classList.add("no-match");
-    return;
-  }
+  findInput.value = "";
   findInput.classList.remove("no-match");
-  CSS.highlights.set("find-all", new Highlight(...findMatches));
-  setCurrent(0);
-}
-
-function setCurrent(i) {
-  if (findMatches.length === 0) return;
-  findIndex = (i + findMatches.length) % findMatches.length;
-  const range = findMatches[findIndex];
-  if (highlightsSupported) {
-    CSS.highlights.set("find-current", new Highlight(range));
-  }
-  const el = range.startContainer.parentElement;
-  if (el) el.scrollIntoView({ block: "center", behavior: "auto" });
-  findCount.textContent = `${findIndex + 1}/${findMatches.length}`;
-}
-
-function goTo(delta) {
-  if (findMatches.length > 0) setCurrent(findIndex + delta);
+  findCount.textContent = "";
 }
 
 if (findBar) {
-  findInput.addEventListener("input", () => runSearch(findInput.value));
+  findInput.addEventListener("input", () => applySearch());
   findInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();

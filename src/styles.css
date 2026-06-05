@@ -207,11 +207,11 @@ body.markdown-body {
   border-color: var(--link);
 }
 
-::highlight(find-all) {
+.ProseMirror-search-match {
   background-color: rgba(216, 164, 62, 0.3);
 }
 
-::highlight(find-current) {
+.ProseMirror-active-search-match {
   background-color: rgba(216, 164, 62, 0.65);
 }
 
