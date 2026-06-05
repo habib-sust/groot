@@ -8,7 +8,9 @@ creates the GitHub Release, and auto-updates `Casks/groot.rb` in the
 ## Invariant
 
 The git tag MUST match the app version. `v0.4.2` requires
-`src-tauri/tauri.conf.json` `version` == `0.4.2`. CI fails fast if they differ.
+`src-tauri/tauri.conf.json` `version` == `0.4.2`; CI fails fast if these differ.
+Keep `src-tauri/Cargo.toml`'s `version` in sync too (it sets the binary's
+version) — CI does **not** check it, so bump it by hand.
 
 ## Steps
 
