@@ -71,28 +71,6 @@ function confirmUnsaved() {
   });
 }
 
-function addCopyButtons() {
-  for (const pre of viewport.querySelectorAll("pre")) {
-    const btn = document.createElement("button");
-    btn.className = "copy-btn";
-    btn.type = "button";
-    btn.textContent = "Copy";
-    btn.addEventListener("click", async () => {
-      const code = pre.querySelector("code");
-      const text = code ? code.innerText : pre.innerText;
-      try {
-        await navigator.clipboard.writeText(text);
-        btn.textContent = "Copied!";
-      } catch {
-        btn.textContent = "Failed";
-      }
-      setTimeout(() => {
-        btn.textContent = "Copy";
-      }, 1500);
-    });
-    pre.appendChild(btn);
-  }
-}
 
 async function render(markdown) {
   currentSource = markdown;
@@ -399,7 +377,6 @@ async function exportHtml() {
     const codeCss = await invoke("syntax_css", { theme: "light" });
     const css = `${stylesText}\n${codeCss}`;
     const clone = viewport.cloneNode(true);
-    clone.querySelectorAll(".copy-btn").forEach((b) => b.remove());
     const body = clone.innerHTML;
     let name = "untitled.html";
     if (currentPath) {

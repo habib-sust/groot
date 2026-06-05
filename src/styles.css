@@ -139,31 +139,6 @@ body {
 
 .error { color: #b06a7a; font-weight: 600; }
 
-.copy-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font: inherit;
-  font-size: 0.72em;
-  padding: 2px 8px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  background: var(--bg);
-  color: var(--muted);
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.12s ease;
-}
-
-.markdown-body pre:hover .copy-btn,
-.copy-btn:focus {
-  opacity: 1;
-}
-
-.copy-btn:hover {
-  color: var(--fg);
-  border-color: var(--link);
-}
 
 #find-bar {
   position: fixed;
@@ -300,8 +275,7 @@ body {
   }
 
   #outline,
-  #find-bar,
-  .copy-btn {
+  #find-bar {
     display: none !important;
   }
 
