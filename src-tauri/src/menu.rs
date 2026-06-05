@@ -69,9 +69,25 @@ pub fn build_app_menu<R: Runtime>(
         .id("print")
         .accelerator("CmdOrCtrl+P")
         .build(app)?;
+    let new_item = MenuItemBuilder::new("New")
+        .id("new_file")
+        .accelerator("CmdOrCtrl+N")
+        .build(app)?;
+    let save_item = MenuItemBuilder::new("Save")
+        .id("save")
+        .accelerator("CmdOrCtrl+S")
+        .build(app)?;
+    let save_as_item = MenuItemBuilder::new("Save As…")
+        .id("save_as")
+        .accelerator("CmdOrCtrl+Shift+S")
+        .build(app)?;
     let file_menu = SubmenuBuilder::new(app, "File")
+        .item(&new_item)
         .item(&open_file)
         .item(&recent_submenu)
+        .separator()
+        .item(&save_item)
+        .item(&save_as_item)
         .separator()
         .item(&export_html_item)
         .item(&print_item)
@@ -131,6 +147,15 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
                     }
                 });
         }
+        "new_file" => {
+            let _ = app.emit("new-file", ());
+        }
+        "save" => {
+            let _ = app.emit("save", ());
+        }
+        "save_as" => {
+            let _ = app.emit("save-as", ());
+        }
         "clear_recent" => {
             {
                 let state = app.state::<Mutex<RecentFiles>>();
@@ -184,11 +209,6 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
 /// Open a file: set title, add to recents, persist, rebuild menu, emit open-file.
 pub fn open_path<R: Runtime>(app: &AppHandle<R>, path: PathBuf) {
     crate::watcher::watch_file(app, &path);
-    if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-        if let Some(window) = app.get_webview_window("main") {
-            let _ = window.set_title(name);
-        }
-    }
     {
         let state = app.state::<Mutex<RecentFiles>>();
         state.lock().unwrap().add(path.clone());

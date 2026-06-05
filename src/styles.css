@@ -43,6 +43,16 @@ body {
   display: flex;
 }
 
+/* Standalone exported document: Rust wrap_html emits <body class="markdown-body">,
+   so neutralize the app-shell flex layout and present a centered reading column.
+   The app's own <body> never carries this class, so this rule only affects exports. */
+body.markdown-body {
+  display: block;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px 32px 80px;
+}
+
 #viewport {
   flex: 1;
   height: 100vh;
@@ -139,31 +149,6 @@ body {
 
 .error { color: #b06a7a; font-weight: 600; }
 
-.copy-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font: inherit;
-  font-size: 0.72em;
-  padding: 2px 8px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  background: var(--bg);
-  color: var(--muted);
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.12s ease;
-}
-
-.markdown-body pre:hover .copy-btn,
-.copy-btn:focus {
-  opacity: 1;
-}
-
-.copy-btn:hover {
-  color: var(--fg);
-  border-color: var(--link);
-}
 
 #find-bar {
   position: fixed;
@@ -279,6 +264,33 @@ body {
   font-size: 0.85em;
 }
 
+/* Clean print render lives off-screen until printing (see @media print). */
+#print-container {
+  display: none;
+}
+
+/* Transient toast (copy confirmation, etc.). */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--fg);
+  color: var(--bg);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.85em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 200;
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 @media print {
   /* Both selectors so the light print palette wins even when data-theme="dark"
      is set (equal specificity to :root[data-theme="dark"], later in source). */
@@ -299,17 +311,99 @@ body {
     display: block;
   }
 
+  /* Hide the live editor and UI chrome; print the clean rendered container only. */
+  #viewport,
   #outline,
   #find-bar,
-  .copy-btn {
+  #unsaved-modal,
+  #toast {
     display: none !important;
   }
 
-  #viewport {
-    height: auto;
-    overflow: visible;
-    max-width: 100%;
-    margin: 0;
+  #print-container {
+    display: block;
+    max-width: 760px;
+    margin: 0 auto;
     padding: 0;
   }
+}
+
+#unsaved-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+#unsaved-modal[hidden] {
+  display: none;
+}
+
+#unsaved-modal .modal-card {
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 22px;
+  max-width: 360px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+#unsaved-modal .modal-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+#unsaved-modal button {
+  font: inherit;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--code-bg);
+  color: var(--fg);
+  cursor: pointer;
+}
+
+#unsaved-modal button:hover {
+  border-color: var(--link);
+}
+
+/* Crepe editor fills the viewport column */
+#viewport .milkdown {
+  height: 100%;
+}
+
+/* Make the typing caret clearly visible. Milkdown hides the native caret
+   (caret-color: transparent) and draws a 2px virtual cursor whose color Crepe
+   sets to --crepe-color-outline — a faint border color that is nearly invisible
+   in both themes. Use the editor's text color so the caret matches the text. */
+#viewport .milkdown .ProseMirror-focused {
+  --prosemirror-virtual-cursor-color: var(--crepe-color-on-background);
+}
+
+/* Bridge Crepe's palette to the app tokens, which switch by data-theme, so the
+   editor reads cohesively in BOTH light (warm cream) and dark (slate) modes. */
+#viewport .milkdown {
+  --crepe-color-background: var(--bg);
+  --crepe-color-on-background: var(--fg);
+  --crepe-color-surface: var(--bg);
+  --crepe-color-surface-low: var(--code-bg);
+  --crepe-color-on-surface: var(--fg);
+  --crepe-color-on-surface-variant: var(--muted);
+  --crepe-color-outline: var(--border);
+  --crepe-color-primary: var(--link);
+  --crepe-color-secondary: var(--border);
+  --crepe-color-on-secondary: var(--fg);
+  --crepe-color-inverse: var(--fg);
+  --crepe-color-on-inverse: var(--bg);
+  --crepe-color-inline-code: var(--link);
+  --crepe-color-inline-area: var(--inline-code-bg);
+  --crepe-color-error: #d9534f;
+  --crepe-color-hover: var(--callout-bg);
+  --crepe-color-selected: var(--callout-bg);
 }

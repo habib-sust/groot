@@ -1,10 +1,16 @@
 import stylesText from "./styles.css?raw";
+import { Crepe, CrepeFeature } from "@milkdown/crepe";
+import "@milkdown/crepe/theme/common/style.css";
+import "@milkdown/crepe/theme/frame.css";
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 
 const viewport = document.querySelector("#viewport");
 
 let currentPath = null;
+let currentSource = "";
+let crepe = null;
+let dirty = false;
 
 const SAMPLE = `# Welcome to Groot
 
@@ -31,36 +37,92 @@ function showError(message) {
   viewport.innerHTML = `<p class="error">⚠️ ${message}</p>`;
 }
 
-function addCopyButtons() {
-  for (const pre of viewport.querySelectorAll("pre")) {
-    const btn = document.createElement("button");
-    btn.className = "copy-btn";
-    btn.type = "button";
-    btn.textContent = "Copy";
-    btn.addEventListener("click", async () => {
-      const code = pre.querySelector("code");
-      const text = code ? code.innerText : pre.innerText;
-      try {
-        await navigator.clipboard.writeText(text);
-        btn.textContent = "Copied!";
-      } catch {
-        btn.textContent = "Failed";
-      }
-      setTimeout(() => {
-        btn.textContent = "Copy";
-      }, 1500);
-    });
-    pre.appendChild(btn);
+// Transient bottom-center toast (e.g. copy confirmation).
+let toastTimer = null;
+function showToast(message) {
+  let el = document.getElementById("toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "toast";
+    document.body.appendChild(el);
   }
+  el.textContent = message;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 1200);
 }
 
+function basename(p) {
+  return p.split("/").pop();
+}
+
+function updateTitle() {
+  const name = currentPath ? basename(currentPath) : "Untitled";
+  invoke("set_window_title", { title: (dirty ? "• " : "") + name });
+}
+
+// Resolves "save" | "discard" | "cancel" from the in-webview modal.
+function confirmUnsaved() {
+  return new Promise((resolve) => {
+    const modal = document.querySelector("#unsaved-modal");
+    const saveBtn = document.querySelector("#unsaved-save");
+    const discardBtn = document.querySelector("#unsaved-discard");
+    const cancelBtn = document.querySelector("#unsaved-cancel");
+    const finish = (result) => {
+      modal.hidden = true;
+      saveBtn.removeEventListener("click", onSave);
+      discardBtn.removeEventListener("click", onDiscard);
+      cancelBtn.removeEventListener("click", onCancel);
+      resolve(result);
+    };
+    const onSave = () => finish("save");
+    const onDiscard = () => finish("discard");
+    const onCancel = () => finish("cancel");
+    saveBtn.addEventListener("click", onSave);
+    discardBtn.addEventListener("click", onDiscard);
+    cancelBtn.addEventListener("click", onCancel);
+    modal.hidden = false;
+    saveBtn.focus();
+  });
+}
+
+
 async function render(markdown) {
-  closeFind();
+  currentSource = markdown;
   try {
-    viewport.innerHTML = await invoke("parse_markdown", { content: markdown });
-    addCopyButtons();
+    if (crepe) {
+      await crepe.destroy();
+      crepe = null;
+    }
+    clearTimeout(outlineDebounce);
+    viewport.innerHTML = "";
+    crepe = new Crepe({
+      root: viewport,
+      defaultValue: markdown,
+      featureConfigs: {
+        // Crepe's code-block copy button copies silently; surface feedback.
+        [CrepeFeature.CodeMirror]: { onCopy: () => showToast("Copied!") },
+      },
+    });
+    await crepe.create();
+    crepe.on((listener) =>
+      listener.markdownUpdated(() => {
+        dirty = true;
+        updateTitle();
+        // Keep the outline current while editing (only if it's visible).
+        if (outline && !outline.hidden) {
+          clearTimeout(outlineDebounce);
+          outlineDebounce = setTimeout(buildOutline, 300);
+        }
+      })
+    );
+    dirty = false;
+    // Find highlights are tied to the old DOM; clear and (if the bar is open) re-run.
+    clearFindHighlights();
+    if (findBar && !findBar.hidden) runSearch(findInput.value);
     buildOutline();
   } catch (e) {
+    crepe = null;
     showError(String(e));
   }
 }
@@ -70,6 +132,7 @@ async function openPath(path) {
   try {
     const content = await invoke("read_markdown_file", { path });
     await render(content);
+    updateTitle();
   } catch (e) {
     showError(String(e));
   }
@@ -238,6 +301,7 @@ listen("find", () => openFind());
 // ---- Outline / TOC ----
 const outline = document.querySelector("#outline");
 let outlineObserver = null;
+let outlineDebounce = null;
 
 function slugify(text) {
   const base = text
@@ -249,7 +313,9 @@ function slugify(text) {
 }
 
 function toggleOutline() {
-  if (outline) outline.hidden = !outline.hidden;
+  if (!outline) return;
+  outline.hidden = !outline.hidden;
+  if (!outline.hidden) buildOutline();
 }
 
 function buildOutline() {
@@ -320,6 +386,7 @@ listen("toggle-outline", () => toggleOutline());
 
 // ---- Live reload (external file change) ----
 async function reloadInPlace(path) {
+  if (dirty) return;
   const y = viewport.scrollTop;
   await openPath(path);
   viewport.scrollTop = y;
@@ -340,23 +407,115 @@ async function injectPrintSyntax() {
   }
 }
 
+// Render the current document to clean, sanitized, syntect-highlighted HTML via
+// the Rust pipeline (not by scraping the editable DOM). Shared by Export + Print.
+async function renderCleanHtml() {
+  const md = crepe ? crepe.getMarkdown() : currentSource;
+  const bodyHtml = await invoke("parse_markdown", { content: md });
+  const codeCss = await invoke("syntax_css", { theme: "light" });
+  return { bodyHtml, codeCss };
+}
+
 async function exportHtml() {
+  if (!crepe) return;
   try {
-    const codeCss = await invoke("syntax_css", { theme: "light" });
+    const { bodyHtml, codeCss } = await renderCleanHtml();
     const css = `${stylesText}\n${codeCss}`;
-    const clone = viewport.cloneNode(true);
-    clone.querySelectorAll(".copy-btn").forEach((b) => b.remove());
-    const body = clone.innerHTML;
     let name = "untitled.html";
     if (currentPath) {
-      const base = currentPath.split("/").pop();
-      name = `${base.replace(/\.(md|markdown)$/i, "")}.html`;
+      name = `${basename(currentPath).replace(/\.(md|markdown)$/i, "")}.html`;
     }
-    await invoke("export_html", { body, css, name });
+    // wrap_html (Rust) already wraps body in <body class="markdown-body">,
+    // so pass the parsed HTML directly — no extra wrapper element.
+    await invoke("export_html", { body: bodyHtml, css, name });
   } catch (e) {
     showError(String(e));
   }
 }
 
-listen("print", () => window.print());
+async function printDocument() {
+  // Remove any stale container left by a previous print whose `afterprint`
+  // never fired (WKWebView can skip it, e.g. on cancel); also guards double-invoke.
+  document.getElementById("print-container")?.remove();
+  try {
+    const { bodyHtml } = await renderCleanHtml();
+    const container = document.createElement("div");
+    container.id = "print-container";
+    container.className = "markdown-body";
+    container.innerHTML = bodyHtml;
+    document.body.appendChild(container);
+    const cleanup = () => {
+      container.remove();
+      window.removeEventListener("afterprint", cleanup);
+    };
+    window.addEventListener("afterprint", cleanup);
+    // On macOS Tauri overrides window.print() to invoke the native print command
+    // (plugin:webview|print) — requires the core:webview:allow-print capability.
+    // It honors the @media print rules above (hides the editor, shows the clean
+    // container). Awaited so a permission error surfaces via the catch.
+    await window.print();
+  } catch (e) {
+    showError(String(e));
+  }
+}
+
+listen("print", () => printDocument());
 listen("export-html", () => exportHtml());
+
+// ---- Save / New / Close ----
+async function save() {
+  if (!crepe) return;
+  if (!currentPath) return saveAs();
+  try {
+    await invoke("write_file", { path: currentPath, content: crepe.getMarkdown() });
+    dirty = false;
+    updateTitle();
+  } catch (e) {
+    showError(String(e));
+  }
+}
+
+async function saveAs() {
+  if (!crepe) return;
+  try {
+    const suggested = currentPath ? basename(currentPath) : "untitled.md";
+    const path = await invoke("save_file_as", {
+      content: crepe.getMarkdown(),
+      suggestedName: suggested,
+    });
+    if (path) {
+      currentPath = path;
+      dirty = false;
+      updateTitle();
+    }
+  } catch (e) {
+    showError(String(e));
+  }
+}
+
+async function newFile() {
+  if (dirty) {
+    const choice = await confirmUnsaved();
+    if (choice === "cancel") return;
+    if (choice === "save") await save();
+  }
+  currentPath = null;
+  await render("");
+  updateTitle();
+}
+
+async function onCloseRequested() {
+  if (!dirty) {
+    invoke("close_main_window");
+    return;
+  }
+  const choice = await confirmUnsaved();
+  if (choice === "cancel") return;
+  if (choice === "save") await save();
+  invoke("close_main_window");
+}
+
+listen("save", () => save());
+listen("save-as", () => saveAs());
+listen("new-file", () => newFile());
+listen("close-requested", () => onCloseRequested());

@@ -1,5 +1,6 @@
 mod appearance;
 mod export;
+mod fileops;
 mod markdown;
 mod menu;
 mod recent_files;
@@ -40,6 +41,20 @@ fn get_appearance(state: tauri::State<Mutex<Appearance>>) -> String {
     state.lock().unwrap().as_str().to_string()
 }
 
+#[tauri::command]
+fn set_window_title(app: tauri::AppHandle, title: String) {
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.set_title(&title);
+    }
+}
+
+#[tauri::command]
+fn close_main_window(app: tauri::AppHandle) {
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.destroy();
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -49,7 +64,11 @@ pub fn run() {
             markdown::read_markdown_file,
             markdown::syntax_css,
             get_appearance,
-            export::export_html
+            export::export_html,
+            fileops::write_file,
+            fileops::save_file_as,
+            set_window_title,
+            close_main_window
         ])
         .setup(|app| {
             let handle = app.handle();
@@ -63,12 +82,10 @@ pub fn run() {
             app.manage(Mutex::new(recent));
             app.manage(Mutex::new(appearance));
 
-            let drag_handle = app.handle().clone();
+            let win_handle = app.handle().clone();
             if let Some(window) = app.get_webview_window("main") {
-                window.on_window_event(move |event| {
-                    if let tauri::WindowEvent::DragDrop(tauri::DragDropEvent::Drop { paths, .. }) =
-                        event
-                    {
+                window.on_window_event(move |event| match event {
+                    tauri::WindowEvent::DragDrop(tauri::DragDropEvent::Drop { paths, .. }) => {
                         let md = paths.iter().find(|p| {
                             matches!(
                                 p.extension()
@@ -79,13 +96,18 @@ pub fn run() {
                             )
                         });
                         match md {
-                            Some(path) => menu::open_path(&drag_handle, path.clone()),
+                            Some(path) => menu::open_path(&win_handle, path.clone()),
                             None => {
-                                let _ = drag_handle
+                                let _ = win_handle
                                     .emit("open-error", "No markdown file in the drop".to_string());
                             }
                         }
                     }
+                    tauri::WindowEvent::CloseRequested { api, .. } => {
+                        api.prevent_close();
+                        let _ = win_handle.emit("close-requested", ());
+                    }
+                    _ => {}
                 });
             }
 
