@@ -364,6 +364,14 @@ body {
   height: 100%;
 }
 
+/* Make the typing caret clearly visible. Milkdown hides the native caret
+   (caret-color: transparent) and draws a 2px virtual cursor whose color Crepe
+   sets to --crepe-color-outline — a faint border color that is nearly invisible
+   in both themes. Use the editor's text color so the caret matches the text. */
+#viewport .milkdown .ProseMirror-focused {
+  --prosemirror-virtual-cursor-color: var(--crepe-color-on-background);
+}
+
 /* Dark-mode bridge: re-skin Crepe to the app's dark palette.
    Variable names match those defined in @milkdown/crepe theme/frame.css (.milkdown root). */
 :root[data-theme="dark"] .milkdown {
