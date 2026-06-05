@@ -2,6 +2,20 @@
 
 A lightweight Markdown desktop app with an in-place **WYSIWYG editor** — write and read Markdown as rendered rich text, no split-pane source/preview, no mode switch. Built with Tauri v2 (Rust) and a Milkdown Crepe editing surface.
 
+## Install (macOS)
+
+```bash
+brew install --cask habib-sust/groot/groot
+```
+
+> **First launch:** groot is not yet notarized by Apple, so macOS Gatekeeper
+> blocks it the first time. Right-click the app in Finder and choose **Open**
+> (then confirm), or run once:
+>
+> ```bash
+> xattr -dr com.apple.quarantine /Applications/groot.app
+> ```
+
 ## Features
 
 - **In-place WYSIWYG editing** — Markdown renders as you type (headings, lists, tables, fenced code with syntax highlighting); no raw-symbol mode switching.
