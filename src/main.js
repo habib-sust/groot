@@ -226,7 +226,6 @@ const findBar = document.querySelector("#find-bar");
 const findInput = document.querySelector("#find-input");
 const findCount = document.querySelector("#find-count");
 
-// The replace input element exists after Task 4 adds its markup; null until then.
 const replaceInput = document.querySelector("#replace-input");
 
 // Build a SearchQuery from the current inputs (case-insensitive literal match).
@@ -309,9 +308,23 @@ if (findBar) {
   document.querySelector("#find-close").addEventListener("click", () => closeFind());
 }
 
+// True if the current selection exactly covers one of the search matches.
+function selectionOnMatch() {
+  const { from, to } = searchView.state.selection;
+  if (from === to) return false;
+  return getMatchHighlights(searchView.state)
+    .find(from, to)
+    .some((m) => m.from === from && m.to === to);
+}
+
 function replaceOne() {
   if (!searchView) return;
   searchView.dispatch(setSearchState(searchView.state.tr, currentQuery()));
+  // replaceNext only replaces a match that's already selected; if none is
+  // selected (cold click), select the first/next match first so one click replaces.
+  if (!selectionOnMatch()) {
+    findNext(searchView.state, searchView.dispatch);
+  }
   replaceNext(searchView.state, searchView.dispatch);
   searchView.focus();
   updateFindCount();
