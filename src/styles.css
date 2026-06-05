@@ -314,6 +314,51 @@ body {
   }
 }
 
+#unsaved-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+#unsaved-modal[hidden] {
+  display: none;
+}
+
+#unsaved-modal .modal-card {
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 22px;
+  max-width: 360px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+#unsaved-modal .modal-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+#unsaved-modal button {
+  font: inherit;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--code-bg);
+  color: var(--fg);
+  cursor: pointer;
+}
+
+#unsaved-modal button:hover {
+  border-color: var(--link);
+}
+
 /* Crepe editor fills the viewport column */
 #viewport .milkdown {
   height: 100%;
