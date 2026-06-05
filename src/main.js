@@ -309,6 +309,36 @@ if (findBar) {
   document.querySelector("#find-close").addEventListener("click", () => closeFind());
 }
 
+function replaceOne() {
+  if (!searchView) return;
+  searchView.dispatch(setSearchState(searchView.state.tr, currentQuery()));
+  replaceNext(searchView.state, searchView.dispatch);
+  searchView.focus();
+  updateFindCount();
+}
+
+function replaceAllMatches() {
+  if (!searchView) return;
+  searchView.dispatch(setSearchState(searchView.state.tr, currentQuery()));
+  replaceAll(searchView.state, searchView.dispatch);
+  updateFindCount();
+}
+
+if (findBar) {
+  replaceInput.addEventListener("input", () => applySearch());
+  replaceInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      replaceOne();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      closeFind();
+    }
+  });
+  document.querySelector("#replace-one").addEventListener("click", () => replaceOne());
+  document.querySelector("#replace-all").addEventListener("click", () => replaceAllMatches());
+}
+
 listen("find", () => openFind());
 
 // ---- Outline / TOC ----

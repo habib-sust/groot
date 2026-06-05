@@ -156,13 +156,19 @@ body.markdown-body {
   right: 16px;
   z-index: 10;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 6px;
   padding: 6px 8px;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+.find-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 #find-bar[hidden] {
@@ -173,6 +179,18 @@ body.markdown-body {
   font: inherit;
   font-size: 0.9em;
   width: 180px;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--code-bg);
+  color: var(--fg);
+  outline: none;
+}
+
+#replace-input {
+  font: inherit;
+  font-size: 0.9em;
+  flex: 1;
   padding: 3px 6px;
   border: 1px solid var(--border);
   border-radius: 5px;
