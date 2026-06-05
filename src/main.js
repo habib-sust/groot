@@ -1,10 +1,15 @@
 import stylesText from "./styles.css?raw";
+import { Crepe } from "@milkdown/crepe";
+import "@milkdown/crepe/theme/common/style.css";
+import "@milkdown/crepe/theme/frame.css";
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 
 const viewport = document.querySelector("#viewport");
 
 let currentPath = null;
+let currentSource = "";
+let crepe = null;
 
 const SAMPLE = `# Welcome to Groot
 
@@ -55,12 +60,17 @@ function addCopyButtons() {
 }
 
 async function render(markdown) {
-  closeFind();
+  currentSource = markdown;
   try {
-    viewport.innerHTML = await invoke("parse_markdown", { content: markdown });
-    addCopyButtons();
-    buildOutline();
+    if (crepe) {
+      await crepe.destroy();
+      crepe = null;
+    }
+    viewport.innerHTML = "";
+    crepe = new Crepe({ root: viewport, defaultValue: markdown });
+    await crepe.create();
   } catch (e) {
+    crepe = null;
     showError(String(e));
   }
 }
