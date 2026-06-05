@@ -1,0 +1,50 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify tag matches tauri.conf version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          CONF_VERSION="$(node -p "require('./src-tauri/tauri.conf.json').version")"
+          if [ "$TAG_VERSION" != "$CONF_VERSION" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match tauri.conf.json version $CONF_VERSION"
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - run: npm ci
+
+      # --- Signing/notarization hook (deferred) -----------------------------
+      # When an Apple Developer ID is available, add these to the env: below:
+      #   APPLE_CERTIFICATE, APPLE_CERTIFICATE_PASSWORD, APPLE_SIGNING_IDENTITY,
+      #   APPLE_ID, APPLE_PASSWORD (or APPLE_API_KEY/APPLE_API_ISSUER).
+      # No other change is needed; tauri-action signs + notarizes when present.
+      # ----------------------------------------------------------------------
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "groot ${{ github.ref_name }}"
+          releaseBody: "Download the .dmg below. groot is not yet notarized — see the README for the first-launch step."
+          releaseDraft: false
+          prerelease: false
+          args: --target universal-apple-darwin
