@@ -180,7 +180,7 @@ body.markdown-body {
   background: none;
   color: inherit;
   padding: 0;
-  font-size: 0.9em;
+  font-size: 1em;
 }
 
 .markdown-body blockquote {
@@ -548,6 +548,33 @@ body.markdown-body {
 /* Fold / expand toggle in the gutter — inherit a readable palette color. */
 #viewport .milkdown .cm-foldGutter span {
   color: var(--muted);
+}
+
+/* Slash (/) block-insert menu: Crepe's item icons are 24px, which reads
+   oversized next to the labels. Shrink them and tighten the icon/label gap. */
+#viewport .milkdown .milkdown-slash-menu .menu-groups .menu-group li svg {
+  width: 18px;
+  height: 18px;
+}
+#viewport .milkdown .milkdown-slash-menu .menu-groups .menu-group li {
+  gap: 12px;
+}
+
+/* List markers: Crepe colors the number labels and bullet icons with
+   --crepe-color-outline (mapped to --border, a near-background hairline), so
+   they're nearly invisible. Re-map to a readable text color. */
+#viewport .milkdown .milkdown-list-item-block li .label-wrapper {
+  color: var(--muted);
+}
+#viewport .milkdown .milkdown-list-item-block li .label-wrapper svg {
+  fill: var(--muted);
+}
+
+/* Code blocks render via CodeMirror at 14px while body text is 16px, making
+   code look noticeably smaller. Match the code font size to the body text. */
+#viewport .milkdown .milkdown-code-block .cm-editor,
+#viewport .milkdown .milkdown-code-block .milkdown-code-block-placeholder {
+  font-size: 16px;
 }
 
 /* Make the typing caret clearly visible. Milkdown hides the native caret

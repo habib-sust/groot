@@ -29,8 +29,17 @@ pub fn build_app_menu<R: Runtime>(
         .id("find")
         .accelerator("CmdOrCtrl+F")
         .build(app)?;
+    // On macOS the system clipboard/edit shortcuts (⌘V paste, ⌘X cut, ⌘Z undo…)
+    // only reach the WKWebView when a predefined menu item carrying the matching
+    // selector is present. Without Paste, ⌘V silently does nothing even though
+    // ⌘C works — so include the full standard edit set.
     let edit_menu = SubmenuBuilder::new(app, "Edit")
+        .item(&PredefinedMenuItem::undo(app, None)?)
+        .item(&PredefinedMenuItem::redo(app, None)?)
+        .separator()
+        .item(&PredefinedMenuItem::cut(app, None)?)
         .item(&PredefinedMenuItem::copy(app, None)?)
+        .item(&PredefinedMenuItem::paste(app, None)?)
         .item(&PredefinedMenuItem::select_all(app, None)?)
         .separator()
         .item(&find_item)
