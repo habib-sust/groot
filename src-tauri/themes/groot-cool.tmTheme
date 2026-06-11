@@ -3,22 +3,22 @@
 <plist version="1.0">
 <dict>
 	<key>name</key>
-	<string>Groot Warm (Sage &amp; Rose)</string>
+	<string>Groot Cool Light (Slate)</string>
 	<key>settings</key>
 	<array>
 		<dict>
 			<key>settings</key>
 			<dict>
 				<key>background</key>
-				<string>#ECF0E6</string>
+				<string>#F6F8FA</string>
 				<key>foreground</key>
-				<string>#4B4540</string>
+				<string>#1F2328</string>
 				<key>caret</key>
-				<string>#B5841F</string>
+				<string>#0969DA</string>
 				<key>selection</key>
-				<string>#DDE3D2</string>
+				<string>#CCE5FF</string>
 				<key>lineHighlight</key>
-				<string>#E3E9D8</string>
+				<string>#EAEEF2</string>
 			</dict>
 		</dict>
 		<dict>
@@ -31,7 +31,7 @@
 				<key>fontStyle</key>
 				<string>italic</string>
 				<key>foreground</key>
-				<string>#9AA08C</string>
+				<string>#6E7781</string>
 			</dict>
 		</dict>
 		<dict>
@@ -42,7 +42,7 @@
 			<key>settings</key>
 			<dict>
 				<key>foreground</key>
-				<string>#B5841F</string>
+				<string>#8B3FD9</string>
 			</dict>
 		</dict>
 		<dict>
@@ -53,7 +53,7 @@
 			<key>settings</key>
 			<dict>
 				<key>foreground</key>
-				<string>#6F685E</string>
+				<string>#57606A</string>
 			</dict>
 		</dict>
 		<dict>
@@ -64,7 +64,7 @@
 			<key>settings</key>
 			<dict>
 				<key>foreground</key>
-				<string>#B06A7A</string>
+				<string>#C13E36</string>
 			</dict>
 		</dict>
 		<dict>
@@ -75,7 +75,7 @@
 			<key>settings</key>
 			<dict>
 				<key>foreground</key>
-				<string>#BF6E3F</string>
+				<string>#B25000</string>
 			</dict>
 		</dict>
 		<dict>
@@ -86,7 +86,7 @@
 			<key>settings</key>
 			<dict>
 				<key>foreground</key>
-				<string>#8A6D3B</string>
+				<string>#1F2328</string>
 			</dict>
 		</dict>
 		<dict>
@@ -97,7 +97,7 @@
 			<key>settings</key>
 			<dict>
 				<key>foreground</key>
-				<string>#5C7FA3</string>
+				<string>#0969DA</string>
 			</dict>
 		</dict>
 		<dict>
@@ -108,7 +108,7 @@
 			<key>settings</key>
 			<dict>
 				<key>foreground</key>
-				<string>#6E8E5E</string>
+				<string>#11806A</string>
 			</dict>
 		</dict>
 		<dict>
@@ -119,7 +119,7 @@
 			<key>settings</key>
 			<dict>
 				<key>foreground</key>
-				<string>#B06A7A</string>
+				<string>#C13E36</string>
 			</dict>
 		</dict>
 		<dict>
@@ -130,7 +130,7 @@
 			<key>settings</key>
 			<dict>
 				<key>foreground</key>
-				<string>#B5841F</string>
+				<string>#0969DA</string>
 			</dict>
 		</dict>
 	</array>

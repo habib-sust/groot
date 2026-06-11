@@ -21,24 +21,24 @@ fn theme_set() -> &'static ThemeSet {
     TS.get_or_init(ThemeSet::load_defaults)
 }
 
-/// The bundled warm "Sage & Rose" syntax theme (compiled into the binary).
-const WARM_TMTHEME: &[u8] = include_bytes!("../themes/groot-warm.tmTheme");
+/// The bundled cool "Slate" light syntax theme (compiled into the binary).
+const COOL_TMTHEME: &[u8] = include_bytes!("../themes/groot-cool.tmTheme");
 
 fn theme() -> &'static Theme {
     static THEME: OnceLock<Theme> = OnceLock::new();
     THEME.get_or_init(|| {
-        ThemeSet::load_from_reader(&mut Cursor::new(WARM_TMTHEME))
+        ThemeSet::load_from_reader(&mut Cursor::new(COOL_TMTHEME))
             .unwrap_or_else(|_| theme_set().themes["InspiredGitHub"].clone())
     })
 }
 
-/// The bundled warm-dark syntax theme, used under macOS dark mode.
-const WARM_DARK_TMTHEME: &[u8] = include_bytes!("../themes/groot-warm-dark.tmTheme");
+/// The bundled cool-dark "Slate" syntax theme, used under macOS dark mode.
+const COOL_DARK_TMTHEME: &[u8] = include_bytes!("../themes/groot-cool-dark.tmTheme");
 
 fn dark_theme() -> &'static Theme {
     static DARK: OnceLock<Theme> = OnceLock::new();
     DARK.get_or_init(|| {
-        ThemeSet::load_from_reader(&mut Cursor::new(WARM_DARK_TMTHEME))
+        ThemeSet::load_from_reader(&mut Cursor::new(COOL_DARK_TMTHEME))
             .unwrap_or_else(|_| theme_set().themes["base16-ocean.dark"].clone())
     })
 }
@@ -168,23 +168,23 @@ mod tests {
     }
 
     #[test]
-    fn syntax_css_light_is_warm() {
+    fn syntax_css_light_is_cool() {
         let css = syntax_css("light".to_string()).to_lowercase();
-        assert!(css.contains("b06a7a"), "light should use warm rose, got: {css}");
+        assert!(css.contains("8b3fd9"), "light should use cool purple keyword, got: {css}");
         assert!(!css.contains("prefers-color-scheme"), "no media wrapper");
     }
 
     #[test]
-    fn syntax_css_dark_is_warm_dark() {
+    fn syntax_css_dark_is_cool_dark() {
         let css = syntax_css("dark".to_string()).to_lowercase();
-        assert!(css.contains("d98c9a"), "dark should use warm-dark rose, got: {css}");
+        assert!(css.contains("c679e0"), "dark should use cool-dark purple keyword, got: {css}");
         assert!(!css.contains("prefers-color-scheme"), "no media wrapper");
     }
 
     #[test]
     fn syntax_css_unknown_defaults_to_light() {
         let css = syntax_css("bogus".to_string()).to_lowercase();
-        assert!(css.contains("b06a7a"), "unknown theme should default to light");
+        assert!(css.contains("8b3fd9"), "unknown theme should default to light");
     }
 
     #[test]

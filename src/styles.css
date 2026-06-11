@@ -1,31 +1,51 @@
 :root {
-  --bg: #faf5ee;
-  --fg: #4b4540;
-  --heading: #33302c;
-  --muted: #8c857a;
-  --border: #dcc3be;
-  --rule: #dcc3be;
-  --link: #b5841f;
-  --accent: #8f6716;
-  --code-bg: #ecf0e6;
-  --inline-code-bg: #e8eedd;
-  --callout-bg: #ebf0e4;
-  --callout-border: #9cae8a;
+  /* Light: clean, neutral, GitHub-style. Near-white page, slate-gray type,
+     a confident blue accent, hairline borders. */
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f6f8fa;
+  --fg: #1f2328;
+  --heading: #1f2328;
+  --muted: #59636e;
+  --border: #d1d9e0;
+  --rule: #d8dee4;
+  --link: #0969da;
+  --accent: #0969da;
+  --accent-soft: rgba(9, 105, 218, 0.10);
+  --code-bg: #f6f8fa;
+  --inline-code-bg: #eaeef2;
+  --inline-code-fg: #1f2328;
+  --callout-bg: #f6f8fa;
+  --callout-border: #d0d7de;
+  --shadow: 0 8px 24px rgba(31, 35, 40, 0.12);
+  --shadow-sm: 0 1px 2px rgba(31, 35, 40, 0.07);
+  --radius: 10px;
+  --radius-sm: 7px;
 }
 
 :root[data-theme="dark"] {
-  --bg: #2e3138;
-  --fg: #c8c4bb;
-  --heading: #ece8e0;
-  --muted: #8d8f8c;
-  --border: #6f585c;
-  --rule: #6f585c;
-  --link: #d8a43e;
-  --accent: #e9bd63;
-  --code-bg: #24272c;
-  --inline-code-bg: #3a3e44;
-  --callout-bg: #2c322b;
-  --callout-border: #7f9670;
+  /* Dark: cool slate-gray, soft light-gray body, near-white headings,
+     subtle gray inline-code pills, blue accent. */
+  --bg: #282d35;
+  --surface: #2f353e;
+  --surface-2: #21262d;
+  --fg: #c9d1d9;
+  --heading: #f0f3f6;
+  --muted: #8b949e;
+  --border: #373e47;
+  --rule: #373e47;
+  --link: #58a6ff;
+  --accent: #58a6ff;
+  --accent-soft: rgba(88, 166, 255, 0.15);
+  --code-bg: #21262d;
+  --inline-code-bg: #373e47;
+  --inline-code-fg: #c9d1d9;
+  --callout-bg: #21262d;
+  --callout-border: #444c56;
+  --shadow: 0 12px 36px rgba(1, 4, 9, 0.6);
+  --shadow-sm: 0 1px 2px rgba(1, 4, 9, 0.4);
+  --radius: 10px;
+  --radius-sm: 7px;
 }
 
 * { box-sizing: border-box; }
@@ -37,6 +57,32 @@ html, body {
   color: var(--fg);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+/* Thin, themed scrollbars so the chrome stays in the warm palette. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+  border: 3px solid transparent;
+  background-clip: content-box;
 }
 
 body {
@@ -71,31 +117,50 @@ body.markdown-body {
   color: var(--heading);
   font-weight: 700;
   line-height: 1.25;
-  margin: 1.6em 0 0.6em;
+  letter-spacing: -0.012em;
+  margin: 1.7em 0 0.6em;
 }
 
-.markdown-body h1 { font-size: 2em; }
+.markdown-body > :first-child,
+.markdown-body h1:first-child {
+  margin-top: 0;
+}
+
+.markdown-body h1 { font-size: 2em; letter-spacing: -0.02em; }
 .markdown-body h2 { font-size: 1.5em; }
 .markdown-body h3 { font-size: 1.25em; }
 
 .markdown-body h1,
 .markdown-body h2 {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--rule);
   padding-bottom: 0.3em;
 }
 
 .markdown-body p { margin: 0.9em 0; }
 
+.markdown-body strong,
+.markdown-body b {
+  font-weight: 700;
+  color: var(--heading);
+}
+
 .markdown-body a {
   color: var(--link);
   text-decoration: underline;
   text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--link), transparent 55%);
+  transition: color 0.12s ease, text-decoration-color 0.12s ease;
 }
 
-.markdown-body a:hover { color: var(--accent); }
+.markdown-body a:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
 
 .markdown-body code {
   background: var(--inline-code-bg);
+  color: var(--inline-code-fg);
   padding: 0.15em 0.4em;
   border-radius: 5px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -105,26 +170,30 @@ body.markdown-body {
 .markdown-body pre {
   position: relative;
   background: var(--code-bg);
-  padding: 18px 20px;
-  border-radius: 8px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
   overflow: auto;
   line-height: 1.5;
 }
 
 .markdown-body pre code {
   background: none;
+  color: inherit;
   padding: 0;
   font-size: 0.9em;
 }
 
 .markdown-body blockquote {
   margin: 1em 0;
-  padding: 0.6em 1em;
+  padding: 0.7em 1.1em;
   color: var(--muted);
   background: var(--callout-bg);
-  border-left: 4px solid var(--callout-border);
-  border-radius: 0 6px 6px 0;
+  border-left: 3px solid var(--callout-border);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
+
+.markdown-body blockquote > :first-child { margin-top: 0; }
+.markdown-body blockquote > :last-child { margin-bottom: 0; }
 
 .markdown-body hr {
   border: 0;
@@ -135,6 +204,9 @@ body.markdown-body {
 .markdown-body table {
   border-collapse: collapse;
   margin: 1em 0;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
 }
 
 .markdown-body th,
@@ -143,7 +215,15 @@ body.markdown-body {
   padding: 8px 14px;
 }
 
-.markdown-body th { font-weight: 700; }
+.markdown-body th {
+  font-weight: 700;
+  color: var(--heading);
+  background: var(--surface-2);
+}
+
+.markdown-body tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--surface-2), transparent 55%);
+}
 
 .markdown-body img { max-width: 100%; }
 
@@ -152,17 +232,17 @@ body.markdown-body {
 
 #find-bar {
   position: fixed;
-  top: 12px;
-  right: 16px;
+  top: 14px;
+  right: 18px;
   z-index: 10;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 6px 8px;
-  background: var(--bg);
+  padding: 8px;
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
 }
 
 .find-row {
@@ -175,32 +255,31 @@ body.markdown-body {
   display: none;
 }
 
-#find-input {
-  font: inherit;
-  font-size: 0.9em;
-  width: 180px;
-  padding: 3px 6px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  background: var(--code-bg);
-  color: var(--fg);
-  outline: none;
-}
-
+#find-input,
 #replace-input {
   font: inherit;
   font-size: 0.9em;
-  flex: 1;
-  padding: 3px 6px;
+  padding: 4px 8px;
   border: 1px solid var(--border);
-  border-radius: 5px;
-  background: var(--code-bg);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
   color: var(--fg);
   outline: none;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+#find-input { width: 180px; }
+#replace-input { flex: 1; }
+
+#find-input:focus,
+#replace-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 #find-input.no-match {
   border-color: #cf4d4d;
+  box-shadow: 0 0 0 3px rgba(207, 77, 77, 0.16);
 }
 
 #find-count {
@@ -213,16 +292,19 @@ body.markdown-body {
 #find-bar button {
   font: inherit;
   font-size: 0.85em;
-  padding: 2px 7px;
+  padding: 3px 9px;
   border: 1px solid var(--border);
-  border-radius: 5px;
-  background: var(--code-bg);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
   color: var(--fg);
   cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
 }
 
 #find-bar button:hover {
-  border-color: var(--link);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .ProseMirror-search-match {
@@ -235,12 +317,12 @@ body.markdown-body {
 
 #outline {
   flex: none;
-  width: 240px;
+  width: 248px;
   height: 100vh;
   overflow: auto;
-  padding: 24px 8px;
+  padding: 28px 12px;
   border-right: 1px solid var(--border);
-  background: var(--bg);
+  background: color-mix(in srgb, var(--surface-2), var(--bg) 45%);
 }
 
 #outline[hidden] {
@@ -249,8 +331,9 @@ body.markdown-body {
 
 .outline-link {
   display: block;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-left: 2px solid transparent;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   color: var(--muted);
   font-size: 0.85em;
   text-decoration: none;
@@ -258,10 +341,12 @@ body.markdown-body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
 }
 
 .outline-link:hover {
   color: var(--fg);
+  background: var(--accent-soft);
 }
 
 .outline-link[data-level="1"] { padding-left: 8px; font-weight: 600; }
@@ -272,8 +357,10 @@ body.markdown-body {
 .outline-link[data-level="6"] { padding-left: 68px; }
 
 .outline-link.active {
-  color: var(--link);
-  border-left-color: var(--link);
+  color: var(--accent);
+  font-weight: 600;
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .outline-empty {
@@ -290,14 +377,17 @@ body.markdown-body {
 /* Transient toast (copy confirmation, etc.). */
 #toast {
   position: fixed;
-  bottom: 24px;
+  bottom: 26px;
   left: 50%;
   transform: translateX(-50%) translateY(8px);
-  background: var(--fg);
+  background: var(--heading);
   color: var(--bg);
-  padding: 6px 14px;
-  border-radius: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
   font-size: 0.85em;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  box-shadow: var(--shadow);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.15s ease, transform 0.15s ease;
@@ -315,6 +405,8 @@ body.markdown-body {
   :root,
   :root[data-theme="dark"] {
     --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f6f8fa;
     --fg: #24292f;
     --heading: #1f2328;
     --muted: #57606a;
@@ -322,6 +414,9 @@ body.markdown-body {
     --rule: #d8dee4;
     --code-bg: #f6f8fa;
     --inline-code-bg: #eef1f3;
+    --inline-code-fg: #24292f;
+    --callout-bg: #f6f8fa;
+    --callout-border: #d0d7de;
     --link: #2f4fd0;
   }
 
@@ -353,7 +448,9 @@ body.markdown-body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(30, 22, 12, 0.34);
+  backdrop-filter: blur(3px);
+  animation: modal-fade 0.16s ease;
 }
 
 #unsaved-modal[hidden] {
@@ -361,34 +458,68 @@ body.markdown-body {
 }
 
 #unsaved-modal .modal-card {
-  background: var(--bg);
+  background: var(--surface);
   color: var(--fg);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 20px 22px;
-  max-width: 360px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  max-width: 380px;
+  box-shadow: var(--shadow);
+  animation: modal-pop 0.18s cubic-bezier(0.2, 0.8, 0.3, 1.1);
+}
+
+#unsaved-msg {
+  margin: 0;
+  font-size: 1.02em;
+  color: var(--heading);
 }
 
 #unsaved-modal .modal-buttons {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
-  margin-top: 16px;
+  margin-top: 20px;
 }
 
 #unsaved-modal button {
   font: inherit;
-  padding: 5px 12px;
+  font-weight: 500;
+  padding: 6px 14px;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--code-bg);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
   color: var(--fg);
   cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, filter 0.12s ease;
 }
 
 #unsaved-modal button:hover {
-  border-color: var(--link);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* Primary action: accent-filled, leads the eye. */
+#unsaved-save {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+#unsaved-save:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  filter: brightness(1.08);
+}
+
+@keyframes modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-pop {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
 }
 
 /* Crepe editor fills the viewport column */
@@ -401,6 +532,22 @@ body.markdown-body {
    (.milkdown-slash-menu) and stays available for block insertion. */
 #viewport .milkdown .milkdown-block-handle {
   display: none;
+}
+
+/* Crepe configures its code blocks with the CodeMirror One Dark theme, whose
+   active-line and active-line-gutter backgrounds stay near-black even in light
+   mode (showing a dark cell behind the current line number). Re-map them to the
+   app palette so the active line reads correctly in BOTH themes. */
+#viewport .milkdown .cm-activeLine {
+  background-color: var(--accent-soft);
+}
+#viewport .milkdown .cm-gutters .cm-activeLineGutter {
+  background-color: var(--accent-soft);
+  color: var(--fg);
+}
+/* Fold / expand toggle in the gutter — inherit a readable palette color. */
+#viewport .milkdown .cm-foldGutter span {
+  color: var(--muted);
 }
 
 /* Make the typing caret clearly visible. Milkdown hides the native caret
@@ -416,19 +563,19 @@ body.markdown-body {
 #viewport .milkdown {
   --crepe-color-background: var(--bg);
   --crepe-color-on-background: var(--fg);
-  --crepe-color-surface: var(--bg);
+  --crepe-color-surface: var(--surface);
   --crepe-color-surface-low: var(--code-bg);
   --crepe-color-on-surface: var(--fg);
   --crepe-color-on-surface-variant: var(--muted);
   --crepe-color-outline: var(--border);
-  --crepe-color-primary: var(--link);
+  --crepe-color-primary: var(--accent);
   --crepe-color-secondary: var(--border);
   --crepe-color-on-secondary: var(--fg);
   --crepe-color-inverse: var(--fg);
   --crepe-color-on-inverse: var(--bg);
-  --crepe-color-inline-code: var(--link);
+  --crepe-color-inline-code: var(--inline-code-fg);
   --crepe-color-inline-area: var(--inline-code-bg);
   --crepe-color-error: #d9534f;
-  --crepe-color-hover: var(--callout-bg);
-  --crepe-color-selected: var(--callout-bg);
+  --crepe-color-hover: var(--accent-soft);
+  --crepe-color-selected: var(--accent-soft);
 }
