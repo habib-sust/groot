@@ -57,7 +57,7 @@ body.markdown-body {
   flex: 1;
   height: 100vh;
   overflow: auto;
-  max-width: 860px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 40px 32px 80px;
   font-size: 17px;
@@ -394,6 +394,13 @@ body.markdown-body {
 /* Crepe editor fills the viewport column */
 #viewport .milkdown {
   height: 100%;
+}
+
+/* Hide Crepe's block-edit gutter handle (the "+" add-block button and the
+   6-dot drag handle). The slash (/) menu is a separate widget
+   (.milkdown-slash-menu) and stays available for block insertion. */
+#viewport .milkdown .milkdown-block-handle {
+  display: none;
 }
 
 /* Make the typing caret clearly visible. Milkdown hides the native caret

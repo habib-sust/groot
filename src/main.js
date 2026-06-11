@@ -218,7 +218,15 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
   await applyTheme(choice);
   await injectPrintSyntax();
-  render(SAMPLE);
+  // Tell the backend we're listening for `open-file`; it flushes any file the OS
+  // queued via "Open With" at launch. Show the welcome sample only if none did.
+  let opened = false;
+  try {
+    opened = await invoke("frontend_ready");
+  } catch {
+    // backend unavailable in some dev contexts; fall back to the sample
+  }
+  if (!opened) render(SAMPLE);
 });
 
 // ---- Find (Cmd+F) ----

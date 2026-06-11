@@ -6,6 +6,7 @@ mod menu;
 mod recent_files;
 mod watcher;
 
+use std::path::PathBuf;
 use std::sync::Mutex;
 
 use tauri::Emitter;
@@ -13,6 +14,16 @@ use tauri::Manager;
 
 use appearance::Appearance;
 use recent_files::RecentFiles;
+
+/// Files the OS asked us to open (via "Open With" / file associations) that
+/// arrived before the frontend was ready to receive `open-file` events.
+/// `ready` flips true once the frontend calls `frontend_ready`; after that,
+/// `RunEvent::Opened` dispatches straight through instead of queuing here.
+#[derive(Default)]
+struct OpenState {
+    ready: Mutex<bool>,
+    pending: Mutex<Vec<PathBuf>>,
+}
 
 /// Path to the persisted recent-files JSON, inside the app config dir.
 pub(crate) fn recent_store_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> std::path::PathBuf {
@@ -55,6 +66,21 @@ fn close_main_window(app: tauri::AppHandle) {
     }
 }
 
+/// Called once the frontend has registered its `open-file` listener. Marks the
+/// frontend ready and flushes any files queued by `RunEvent::Opened` during
+/// startup. Returns true if a file was opened, so the frontend can skip the
+/// welcome sample.
+#[tauri::command]
+fn frontend_ready(app: tauri::AppHandle, state: tauri::State<OpenState>) -> bool {
+    *state.ready.lock().unwrap() = true;
+    let pending: Vec<PathBuf> = std::mem::take(&mut state.pending.lock().unwrap());
+    let opened = !pending.is_empty();
+    for path in pending {
+        menu::open_path(&app, path);
+    }
+    opened
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -68,7 +94,8 @@ pub fn run() {
             fileops::write_file,
             fileops::save_file_as,
             set_window_title,
-            close_main_window
+            close_main_window,
+            frontend_ready
         ])
         .setup(|app| {
             let handle = app.handle();
@@ -112,6 +139,7 @@ pub fn run() {
             }
 
             app.manage(Mutex::new(None::<std::path::PathBuf>));
+            app.manage(OpenState::default());
             let watch_state = watcher::build_watcher(app.handle());
             app.manage(Mutex::new(watch_state));
 
@@ -120,6 +148,23 @@ pub fn run() {
         .on_menu_event(|app, event| {
             menu::handle_menu_event(app, event.id().as_ref());
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        // macOS "Open With" / file-association launches deliver files here. If the
+        // frontend isn't ready yet (cold start), queue them; `frontend_ready` flushes.
+        .run(|app, event| {
+            if let tauri::RunEvent::Opened { urls } = event {
+                let state = app.state::<OpenState>();
+                let ready = *state.ready.lock().unwrap();
+                for url in urls {
+                    if let Ok(path) = url.to_file_path() {
+                        if ready {
+                            menu::open_path(app, path);
+                        } else {
+                            state.pending.lock().unwrap().push(path);
+                        }
+                    }
+                }
+            }
+        });
 }
