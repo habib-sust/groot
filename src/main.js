@@ -25,6 +25,9 @@ const sbReading = document.querySelector("#sb-reading");
 const sbSave = document.querySelector("#sb-save");
 const errorBanner = document.querySelector("#error-banner");
 const errorBannerMsg = document.querySelector("#error-banner-msg");
+const commandPalette = document.querySelector("#command-palette");
+const paletteInput = document.querySelector("#palette-input");
+const paletteList = document.querySelector("#palette-list");
 
 let currentPath = null;
 let currentSource = "";
@@ -518,10 +521,12 @@ function buildOutline() {
 
 listen("toggle-outline", () => toggleOutline());
 
-listen("toggle-status-bar", () => {
+function toggleStatusBar() {
   document.body.classList.toggle("no-statusbar");
   refreshStatus();
-});
+}
+
+listen("toggle-status-bar", () => toggleStatusBar());
 
 document.querySelector("#error-banner-close")?.addEventListener("click", () => {
   if (errorBanner) errorBanner.hidden = true;
@@ -664,3 +669,110 @@ listen("save", () => save());
 listen("save-as", () => saveAs());
 listen("new-file", () => newFile());
 listen("close-requested", () => onCloseRequested());
+
+// ---- Command palette (Cmd+K) ----
+const COMMANDS = [
+  { label: "New File",          hint: "⌘N",  run: () => newFile() },
+  { label: "Save",              hint: "⌘S",  run: () => save() },
+  { label: "Save As…",          hint: "⇧⌘S", run: () => saveAs() },
+  { label: "Find…",             hint: "⌘F",  run: () => openFind() },
+  { label: "Toggle Outline",    hint: "⇧⌘O", run: () => toggleOutline() },
+  { label: "Toggle Status Bar", hint: "⌘/",  run: () => toggleStatusBar() },
+  { label: "Export as HTML…",   hint: "",    run: () => exportHtml() },
+  { label: "Print…",            hint: "⌘P",  run: () => printDocument() },
+];
+
+let paletteFiltered = [];
+let paletteActive = 0;
+
+function renderPalette(filter) {
+  const q = filter.trim().toLowerCase();
+  paletteFiltered = q
+    ? COMMANDS.filter((c) => c.label.toLowerCase().includes(q))
+    : COMMANDS.slice();
+  if (paletteActive >= paletteFiltered.length) paletteActive = 0;
+  paletteList.innerHTML = "";
+  if (paletteFiltered.length === 0) {
+    const li = document.createElement("li");
+    li.className = "palette-empty";
+    li.textContent = "No matching commands";
+    paletteList.appendChild(li);
+    return;
+  }
+  paletteFiltered.forEach((cmd, i) => {
+    const li = document.createElement("li");
+    li.className = i === paletteActive ? "active" : "";
+    const label = document.createElement("span");
+    label.textContent = cmd.label;
+    const hint = document.createElement("span");
+    hint.className = "palette-hint";
+    hint.textContent = cmd.hint;
+    li.append(label, hint);
+    li.addEventListener("mousemove", () => setPaletteActive(i));
+    li.addEventListener("click", () => {
+      paletteActive = i;
+      runActive();
+    });
+    paletteList.appendChild(li);
+  });
+}
+
+function setPaletteActive(i) {
+  paletteActive = i;
+  [...paletteList.children].forEach((li, idx) =>
+    li.classList.toggle("active", idx === i)
+  );
+}
+
+function openPalette() {
+  if (!commandPalette) return;
+  commandPalette.hidden = false;
+  paletteInput.value = "";
+  paletteActive = 0;
+  renderPalette("");
+  paletteInput.focus();
+}
+
+function closePalette() {
+  if (!commandPalette) return;
+  commandPalette.hidden = true;
+  if (searchView) searchView.focus();
+}
+
+function runActive() {
+  const cmd = paletteFiltered[paletteActive];
+  if (!cmd) return;
+  closePalette();
+  cmd.run();
+}
+
+if (commandPalette) {
+  paletteInput.addEventListener("input", () => renderPalette(paletteInput.value));
+  paletteInput.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (paletteFiltered.length) {
+        setPaletteActive((paletteActive + 1) % paletteFiltered.length);
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (paletteFiltered.length) {
+        setPaletteActive(
+          (paletteActive - 1 + paletteFiltered.length) % paletteFiltered.length
+        );
+      }
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      runActive();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      closePalette();
+    }
+  });
+  // Click on the backdrop (outside the card) closes the palette.
+  commandPalette.addEventListener("mousedown", (e) => {
+    if (e.target === commandPalette) closePalette();
+  });
+}
+
+listen("command-palette", () => openPalette());

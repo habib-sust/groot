@@ -130,7 +130,13 @@ pub fn build_app_menu<R: Runtime>(
         .id("toggle_status_bar")
         .accelerator("CmdOrCtrl+/")
         .build(app)?;
+    let command_palette = MenuItemBuilder::new("Command Palette…")
+        .id("command_palette")
+        .accelerator("CmdOrCtrl+K")
+        .build(app)?;
     let view_menu = SubmenuBuilder::new(app, "View")
+        .item(&command_palette)
+        .separator()
         .item(&appearance_menu)
         .separator()
         .item(&toggle_outline)
@@ -185,6 +191,9 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
         }
         "toggle_status_bar" => {
             let _ = app.emit("toggle-status-bar", ());
+        }
+        "command_palette" => {
+            let _ = app.emit("command-palette", ());
         }
         "export_html" => {
             let _ = app.emit("export-html", ());

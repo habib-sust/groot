@@ -557,7 +557,8 @@ body.no-statusbar #status-bar {
   #unsaved-modal,
   #toast,
   #status-bar,
-  #error-banner {
+  #error-banner,
+  #command-palette {
     display: none !important;
   }
 
@@ -733,4 +734,85 @@ body.no-statusbar #status-bar {
   --crepe-color-error: #d9534f;
   --crepe-color-hover: var(--accent-soft);
   --crepe-color-selected: var(--accent-soft);
+}
+
+/* Command palette (Cmd+K). */
+#command-palette {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  background: rgba(30, 22, 12, 0.34);
+  backdrop-filter: blur(3px);
+  animation: modal-fade 0.16s ease;
+}
+
+#command-palette[hidden] {
+  display: none;
+}
+
+#command-palette .palette-card {
+  width: min(560px, 90vw);
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  animation: modal-pop 0.18s cubic-bezier(0.2, 0.8, 0.3, 1.1);
+}
+
+#palette-input {
+  font: inherit;
+  font-size: 1.02em;
+  padding: 14px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  outline: none;
+}
+
+#palette-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+}
+
+#palette-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--fg);
+  cursor: pointer;
+}
+
+#palette-list li.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+#palette-list li .palette-hint {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  color: var(--muted);
+}
+
+#palette-list li.active .palette-hint {
+  color: var(--accent);
+}
+
+#palette-list li.palette-empty {
+  color: var(--muted);
+  cursor: default;
+  justify-content: flex-start;
 }
