@@ -130,21 +130,11 @@ pub fn build_app_menu<R: Runtime>(
         .id("toggle_status_bar")
         .accelerator("CmdOrCtrl+/")
         .build(app)?;
-    let toggle_focus_mode = MenuItemBuilder::new("Focus Mode")
-        .id("toggle_focus_mode")
-        .accelerator("CmdOrCtrl+Shift+F")
-        .build(app)?;
-    let toggle_typewriter = MenuItemBuilder::new("Typewriter Scrolling")
-        .id("toggle_typewriter")
-        .accelerator("CmdOrCtrl+Shift+T")
-        .build(app)?;
     let view_menu = SubmenuBuilder::new(app, "View")
         .item(&appearance_menu)
         .separator()
         .item(&toggle_outline)
         .item(&toggle_status_bar)
-        .item(&toggle_focus_mode)
-        .item(&toggle_typewriter)
         .build()?;
 
     MenuBuilder::new(app)
@@ -195,12 +185,6 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
         }
         "toggle_status_bar" => {
             let _ = app.emit("toggle-status-bar", ());
-        }
-        "toggle_focus_mode" => {
-            let _ = app.emit("toggle-focus-mode", ());
-        }
-        "toggle_typewriter" => {
-            let _ = app.emit("toggle-typewriter", ());
         }
         "export_html" => {
             let _ = app.emit("export-html", ());
