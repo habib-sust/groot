@@ -126,10 +126,15 @@ pub fn build_app_menu<R: Runtime>(
         .id("toggle_outline")
         .accelerator("CmdOrCtrl+Shift+O")
         .build(app)?;
+    let toggle_status_bar = MenuItemBuilder::new("Toggle Status Bar")
+        .id("toggle_status_bar")
+        .accelerator("CmdOrCtrl+/")
+        .build(app)?;
     let view_menu = SubmenuBuilder::new(app, "View")
         .item(&appearance_menu)
         .separator()
         .item(&toggle_outline)
+        .item(&toggle_status_bar)
         .build()?;
 
     MenuBuilder::new(app)
@@ -177,6 +182,9 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
         }
         "toggle_outline" => {
             let _ = app.emit("toggle-outline", ());
+        }
+        "toggle_status_bar" => {
+            let _ = app.emit("toggle-status-bar", ());
         }
         "export_html" => {
             let _ = app.emit("export-html", ());

@@ -18,6 +18,13 @@ const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 
 const viewport = document.querySelector("#viewport");
+const statusBar = document.querySelector("#status-bar");
+const sbBreadcrumb = document.querySelector("#sb-breadcrumb");
+const sbCount = document.querySelector("#sb-count");
+const sbReading = document.querySelector("#sb-reading");
+const sbSave = document.querySelector("#sb-save");
+const errorBanner = document.querySelector("#error-banner");
+const errorBannerMsg = document.querySelector("#error-banner-msg");
 
 let currentPath = null;
 let currentSource = "";
@@ -46,8 +53,16 @@ fn main() {
 > Editing is coming in a later iteration.
 `;
 
+// Non-destructive: shows a dismissible banner; never replaces the live editor.
+// When no editor exists yet (initial load failure), fall back to inline content.
 function showError(message) {
-  viewport.innerHTML = `<p class="error">⚠️ ${message}</p>`;
+  if (!crepe && viewport) {
+    viewport.innerHTML = `<p class="error">⚠️ ${message}</p>`;
+    return;
+  }
+  if (!errorBanner) return;
+  errorBannerMsg.textContent = `⚠️ ${message}`;
+  errorBanner.hidden = false;
 }
 
 // Transient bottom-center toast (e.g. copy confirmation).
@@ -69,9 +84,55 @@ function basename(p) {
   return p.split("/").pop();
 }
 
+function countWords(text) {
+  const t = text.trim();
+  return t ? t.split(/\s+/).length : 0;
+}
+
+// Nearest heading whose start is before the cursor — the enclosing section.
+function currentSection(state) {
+  const pos = state.selection.from;
+  let heading = "";
+  state.doc.descendants((node, nodePos) => {
+    if (nodePos < pos && node.type.name === "heading") heading = node.textContent;
+  });
+  return heading;
+}
+
+let statusDebounce = null;
+function refreshStatus() {
+  if (!statusBar) return;
+  // Save state is always meaningful, even before the editor view exists.
+  statusBar.classList.toggle("dirty", dirty);
+  sbSave.textContent = dirty ? "● Unsaved" : "✓ Saved";
+
+  if (!searchView) {
+    sbBreadcrumb.textContent = "";
+    sbCount.textContent = "";
+    sbReading.textContent = "";
+    return;
+  }
+  const state = searchView.state;
+  const { from, to } = state.selection;
+
+  const section = currentSection(state);
+  sbBreadcrumb.textContent = section ? `§ ${section}` : "";
+
+  if (from !== to) {
+    const words = countWords(state.doc.textBetween(from, to, " "));
+    sbCount.textContent = `${words} ${words === 1 ? "word" : "words"} selected`;
+    sbReading.textContent = "";
+  } else {
+    const words = countWords(state.doc.textContent);
+    sbCount.textContent = `${words} ${words === 1 ? "word" : "words"}`;
+    sbReading.textContent = words ? `${Math.max(1, Math.ceil(words / 200))} min read` : "";
+  }
+}
+
 function updateTitle() {
   const name = currentPath ? basename(currentPath) : "Untitled";
   invoke("set_window_title", { title: (dirty ? "• " : "") + name });
+  refreshStatus();
 }
 
 // Resolves "save" | "discard" | "cancel" from the in-webview modal.
@@ -125,12 +186,16 @@ async function render(markdown) {
         [CrepeFeature.BlockEdit]: {
           advancedGroup: { image: null, math: null },
         },
+        [CrepeFeature.Placeholder]: {
+          text: "Start writing…",
+          mode: "doc",
+        },
       },
     });
     crepe.editor.use($prose(() => search()));
     await crepe.create();
     searchView = crepe.editor.ctx.get(editorViewCtx);
-    crepe.on((listener) =>
+    crepe.on((listener) => {
       listener.markdownUpdated(() => {
         dirty = true;
         updateTitle();
@@ -139,9 +204,14 @@ async function render(markdown) {
           clearTimeout(outlineDebounce);
           outlineDebounce = setTimeout(buildOutline, 300);
         }
-      })
-    );
+        // Counts recompute is O(doc); debounce against per-keystroke churn.
+        clearTimeout(statusDebounce);
+        statusDebounce = setTimeout(refreshStatus, 200);
+      });
+      listener.selectionUpdated(() => refreshStatus());
+    });
     dirty = false;
+    refreshStatus();
     // Editor (and its search plugin) is recreated per load; re-apply the query
     // if the find bar is open so highlights reflect the new document.
     if (findBar && !findBar.hidden && findInput.value) applySearch();
@@ -448,6 +518,15 @@ function buildOutline() {
 
 listen("toggle-outline", () => toggleOutline());
 
+listen("toggle-status-bar", () => {
+  document.body.classList.toggle("no-statusbar");
+  refreshStatus();
+});
+
+document.querySelector("#error-banner-close")?.addEventListener("click", () => {
+  if (errorBanner) errorBanner.hidden = true;
+});
+
 // ---- Live reload (external file change) ----
 async function reloadInPlace(path) {
   if (dirty) return;
@@ -534,6 +613,7 @@ async function save() {
     await invoke("write_file", { path: currentPath, content: crepe.getMarkdown() });
     dirty = false;
     updateTitle();
+    showToast("Saved");
   } catch (e) {
     showError(String(e));
   }
@@ -551,6 +631,7 @@ async function saveAs() {
       currentPath = path;
       dirty = false;
       updateTitle();
+      showToast("Saved");
     }
   } catch (e) {
     showError(String(e));

@@ -10,6 +10,18 @@
   <body>
     <nav id="outline" hidden></nav>
     <main id="viewport"></main>
+    <footer id="status-bar">
+      <span id="sb-breadcrumb" class="sb-section"></span>
+      <span class="sb-stats">
+        <span id="sb-count"></span>
+        <span id="sb-reading"></span>
+        <span id="sb-save"></span>
+      </span>
+    </footer>
+    <div id="error-banner" hidden>
+      <span id="error-banner-msg"></span>
+      <button id="error-banner-close" type="button" title="Dismiss">✕</button>
+    </div>
     <div id="find-bar" hidden>
       <div class="find-row">
         <input id="find-input" type="text" placeholder="Find" autocomplete="off" spellcheck="false" />
