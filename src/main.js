@@ -129,6 +129,44 @@ function refreshStatus() {
   }
 }
 
+// ---- Focus mode + typewriter scrolling (Phase 2) ----
+let focusActiveEl = null;
+
+// Dim all but the cursor's top-level block (only when focus-mode is on).
+function updateFocus() {
+  if (!document.body.classList.contains("focus-mode") || !searchView) return;
+  const view = searchView;
+  let el = null;
+  try {
+    const pos = view.state.selection.$from.before(1); // start of depth-1 block
+    el = view.nodeDOM(pos);
+  } catch {
+    el = null; // selection at a doc edge / depth 0
+  }
+  if (el && el.nodeType !== 1) el = el.parentElement; // ensure an Element
+  if (focusActiveEl && focusActiveEl !== el) {
+    focusActiveEl.classList.remove("focus-active");
+  }
+  if (el) el.classList.add("focus-active");
+  focusActiveEl = el;
+}
+
+// Pin the caret at ~40% of viewport height (only when typewriter is on).
+function applyTypewriter() {
+  if (!document.body.classList.contains("typewriter") || !searchView) return;
+  const view = searchView;
+  let coords;
+  try {
+    coords = view.coordsAtPos(view.state.selection.head);
+  } catch {
+    return;
+  }
+  const vpRect = viewport.getBoundingClientRect();
+  const targetY = vpRect.top + viewport.clientHeight * 0.4;
+  const delta = coords.top - targetY;
+  if (Math.abs(delta) > 1) viewport.scrollTop += delta;
+}
+
 function updateTitle() {
   const name = currentPath ? basename(currentPath) : "Untitled";
   invoke("set_window_title", { title: (dirty ? "• " : "") + name });
@@ -164,6 +202,7 @@ function confirmUnsaved() {
 async function render(markdown) {
   currentSource = markdown;
   try {
+    focusActiveEl = null;
     if (crepe) {
       await crepe.destroy();
       crepe = null;
@@ -207,11 +246,19 @@ async function render(markdown) {
         // Counts recompute is O(doc); debounce against per-keystroke churn.
         clearTimeout(statusDebounce);
         statusDebounce = setTimeout(refreshStatus, 200);
+        updateFocus();
+        applyTypewriter();
       });
-      listener.selectionUpdated(() => refreshStatus());
+      listener.selectionUpdated(() => {
+        refreshStatus();
+        updateFocus();
+        applyTypewriter();
+      });
     });
     dirty = false;
     refreshStatus();
+    updateFocus();
+    applyTypewriter();
     // Editor (and its search plugin) is recreated per load; re-apply the query
     // if the find bar is open so highlights reflect the new document.
     if (findBar && !findBar.hidden && findInput.value) applySearch();
@@ -521,6 +568,21 @@ listen("toggle-outline", () => toggleOutline());
 listen("toggle-status-bar", () => {
   document.body.classList.toggle("no-statusbar");
   refreshStatus();
+});
+
+listen("toggle-focus-mode", () => {
+  const on = document.body.classList.toggle("focus-mode");
+  if (on) {
+    updateFocus();
+  } else if (focusActiveEl) {
+    focusActiveEl.classList.remove("focus-active");
+    focusActiveEl = null;
+  }
+});
+
+listen("toggle-typewriter", () => {
+  document.body.classList.toggle("typewriter");
+  applyTypewriter();
 });
 
 document.querySelector("#error-banner-close")?.addEventListener("click", () => {

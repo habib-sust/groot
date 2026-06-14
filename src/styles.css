@@ -524,6 +524,15 @@ body.no-statusbar #status-bar {
   }
 }
 
+/* Focus mode: dim all but the active top-level block. */
+body.focus-mode #viewport .ProseMirror > * {
+  opacity: 0.35;
+  transition: opacity 0.2s ease;
+}
+body.focus-mode #viewport .ProseMirror > *.focus-active {
+  opacity: 1;
+}
+
 @media print {
   /* Both selectors so the light print palette wins even when data-theme="dark"
      is set (equal specificity to :root[data-theme="dark"], later in source). */
