@@ -98,13 +98,16 @@ jobs:
             echo "::error::no .dmg asset found on release $GITHUB_REF_NAME"
             exit 1
           fi
-          ARCH="${ASSET#groot_${VERSION}_}"
-          ARCH="${ARCH%.dmg}"
+          # Asset name is "<Product>_<version>_<arch>.dmg" — derive both parts
+          # without hardcoding the product name (it is "Groot", capitalized).
+          ARCH="${ASSET##*_${VERSION}_}"; ARCH="${ARCH%.dmg}"
+          PRODUCT="${ASSET%%_${VERSION}_*}"
           gh release download "$GITHUB_REF_NAME" -R habib-sust/groot -p "$ASSET" -O /tmp/groot.dmg
           SHA="$(sha256sum /tmp/groot.dmg | cut -d' ' -f1)"
           {
             echo "version=$VERSION"
             echo "arch=$ARCH"
+            echo "product=$PRODUCT"
             echo "sha=$SHA"
           } >> "$GITHUB_OUTPUT"
 
@@ -121,7 +124,8 @@ jobs:
           bash scripts/render-cask.sh \
             "${{ steps.meta.outputs.version }}" \
             "${{ steps.meta.outputs.sha }}" \
-            "${{ steps.meta.outputs.arch }}" > tap/Casks/groot.rb
+            "${{ steps.meta.outputs.arch }}" \
+            "${{ steps.meta.outputs.product }}" > tap/Casks/groot.rb
           cat tap/Casks/groot.rb
 
       - name: Commit and push
