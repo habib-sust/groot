@@ -32,15 +32,43 @@ jobs:
 
       - run: npm ci
 
-      # --- Signing/notarization hook (deferred) -----------------------------
-      # When an Apple Developer ID is available, add these to the env: below:
-      #   APPLE_CERTIFICATE, APPLE_CERTIFICATE_PASSWORD, APPLE_SIGNING_IDENTITY,
-      #   APPLE_ID, APPLE_PASSWORD (or APPLE_API_KEY/APPLE_API_ISSUER).
-      # No other change is needed; tauri-action signs + notarizes when present.
+      # Decode the App Store Connect API key (.p8) used for notarization. Stored
+      # as a base64 secret; written to a temp file whose path tauri reads via
+      # APPLE_API_KEY_PATH. Guarded so unsigned builds still work without it.
+      - name: Write App Store Connect API key
+        env:
+          APPLE_API_KEY_CONTENT_BASE64: ${{ secrets.APPLE_API_KEY_CONTENT_BASE64 }}
+        run: |
+          if [ -n "$APPLE_API_KEY_CONTENT_BASE64" ]; then
+            KEY_PATH="$RUNNER_TEMP/asc_api_key.p8"
+            echo "$APPLE_API_KEY_CONTENT_BASE64" | base64 --decode > "$KEY_PATH"
+            echo "APPLE_API_KEY_PATH=$KEY_PATH" >> "$GITHUB_ENV"
+            echo "App Store Connect API key written → signed + notarized build."
+          else
+            echo "No APPLE_API_KEY_CONTENT_BASE64 secret set → unsigned build."
+          fi
+
+      # --- Signing + notarization -------------------------------------------
+      # tauri-action signs with the Developer ID Application cert (imported from
+      # APPLE_CERTIFICATE) and notarizes via the App Store Connect API key, then
+      # staples — automatically, when these secrets are present. If they are
+      # empty, it falls back to an unsigned build (no other change needed).
+      # Required repo secrets:
+      #   APPLE_CERTIFICATE             base64 of the Developer ID .p12
+      #   APPLE_CERTIFICATE_PASSWORD    the .p12 password
+      #   APPLE_SIGNING_IDENTITY        "Developer ID Application: Name (TEAMID)"
+      #   APPLE_API_KEY                 App Store Connect key ID
+      #   APPLE_API_ISSUER             App Store Connect issuer UUID
+      #   APPLE_API_KEY_CONTENT_BASE64  base64 of the .p8 key file
       # ----------------------------------------------------------------------
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "groot ${{ github.ref_name }}"
