@@ -1,9 +1,11 @@
 use std::path::PathBuf;
 use std::sync::Mutex;
 
+use tauri::image::Image;
 use tauri::menu::{
     CheckMenuItemBuilder, Menu, MenuBuilder, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder,
 };
+use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 use tauri_plugin_dialog::DialogExt;
 
@@ -145,10 +147,62 @@ pub fn build_app_menu<R: Runtime>(
 
     MenuBuilder::new(app)
         .item(&app_menu)
+        .item(&file_menu)
         .item(&edit_menu)
         .item(&view_menu)
-        .item(&file_menu)
         .build()
+}
+
+/// Build the macOS menu-bar (top-right status area) tray icon: a leaf glyph
+/// with a small quick-actions menu. The icon is a monochrome **template** image
+/// (`icon_as_template`), so macOS recolors it to match the light/dark menu bar.
+/// New File / Open File… reuse the standard menu dispatch; Show / Quit are
+/// handled inline.
+pub fn build_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
+    let show = MenuItemBuilder::new("Show Groot")
+        .id("tray_show")
+        .build(app)?;
+    let new_item = MenuItemBuilder::new("New File")
+        .id("new_file")
+        .accelerator("CmdOrCtrl+N")
+        .build(app)?;
+    let open_item = MenuItemBuilder::new("Open File…")
+        .id("open_file")
+        .accelerator("CmdOrCtrl+O")
+        .build(app)?;
+    let quit = MenuItemBuilder::new("Quit Groot")
+        .id("tray_quit")
+        .accelerator("CmdOrCtrl+Q")
+        .build(app)?;
+    let tray_menu = MenuBuilder::new(app)
+        .item(&show)
+        .separator()
+        .item(&new_item)
+        .item(&open_item)
+        .separator()
+        .item(&quit)
+        .build()?;
+
+    let icon = Image::from_bytes(include_bytes!("../icons/tray.png"))?;
+
+    TrayIconBuilder::with_id("main-tray")
+        .icon(icon)
+        .icon_as_template(true)
+        .tooltip("Groot")
+        .menu(&tray_menu)
+        .on_menu_event(|app, event| match event.id().as_ref() {
+            "tray_show" => {
+                if let Some(w) = app.get_webview_window("main") {
+                    let _ = w.show();
+                    let _ = w.unminimize();
+                    let _ = w.set_focus();
+                }
+            }
+            "tray_quit" => app.exit(0),
+            other => handle_menu_event(app, other),
+        })
+        .build(app)?;
+    Ok(())
 }
 
 /// Dispatch a menu click by item id.

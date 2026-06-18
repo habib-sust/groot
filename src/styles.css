@@ -1,27 +1,35 @@
 :root {
-  /* Light: clean, neutral, GitHub-style. Near-white page, slate-gray type,
-     a confident blue accent, hairline borders. */
-  --bg: #ffffff;
-  --surface: #ffffff;
-  --surface-2: #f6f8fa;
-  --fg: #1f2328;
-  --heading: #1f2328;
-  --muted: #59636e;
-  --border: #d1d9e0;
-  --rule: #d8dee4;
-  --link: #0969da;
-  --accent: #0969da;
-  --accent-soft: rgba(9, 105, 218, 0.10);
-  --code-bg: #f6f8fa;
-  --inline-code-bg: #eaeef2;
-  --inline-code-fg: #1f2328;
-  --callout-bg: #f6f8fa;
-  --callout-border: #d0d7de;
-  --shadow: 0 8px 24px rgba(31, 35, 40, 0.12);
-  --shadow-sm: 0 1px 2px rgba(31, 35, 40, 0.07);
-  --radius: 10px;
-  --radius-sm: 7px;
-  --statusbar-h: 26px;
+  /* Arboretum — Light ("pressed paper"): warm rag-paper page, ink-brown type,
+     a botanical-green accent, soft oat-colored hairlines. An editorial,
+     field-journal feel rather than a clinical white app. */
+  --bg: #f5f1e6;
+  --surface: #fbf8ef;
+  --surface-2: #ece5d3;
+  --fg: #353026;
+  --heading: #241f17;
+  --muted: #897e66;
+  --border: #ddd4bf;
+  --rule: #e3dac6;
+  --link: #2f6b46;
+  --accent: #357a4f;
+  --accent-soft: rgba(53, 122, 79, 0.11);
+  --code-bg: #efe9d9;
+  --inline-code-bg: #e6dec9;
+  --inline-code-fg: #4a4231;
+  --callout-bg: #efe9d9;
+  --callout-border: #d8cfb6;
+  --paper-grain: rgba(120, 100, 60, 0.025);
+  --shadow: 0 14px 40px -12px rgba(60, 48, 24, 0.28);
+  --shadow-sm: 0 1px 2px rgba(60, 48, 24, 0.10);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --statusbar-h: 28px;
+
+  /* Editorial type system — distinctive, not system fonts. */
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --font-text: "Newsreader", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --font-ui: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 :root[data-theme="dark"] {
@@ -43,11 +51,17 @@
   --inline-code-fg: #c9d1d9;
   --callout-bg: #21262d;
   --callout-border: #444c56;
+  --paper-grain: rgba(190, 205, 225, 0.02);
   --shadow: 0 12px 36px rgba(1, 4, 9, 0.6);
   --shadow-sm: 0 1px 2px rgba(1, 4, 9, 0.4);
-  --radius: 10px;
-  --radius-sm: 7px;
-  --statusbar-h: 26px;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --statusbar-h: 28px;
+
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --font-text: "Newsreader", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --font-ui: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 * { box-sizing: border-box; }
@@ -57,9 +71,22 @@ html, body {
   height: 100%;
   background: var(--bg);
   color: var(--fg);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-ui);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Faint paper grain over the whole shell for atmosphere — fixed so it doesn't
+   scroll with content. Subtle enough to never compete with text. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 18% 0%, var(--paper-grain), transparent 60%),
+    radial-gradient(circle at 100% 100%, var(--paper-grain), transparent 55%);
 }
 
 ::selection {
@@ -102,25 +129,31 @@ body.markdown-body {
 }
 
 #viewport {
+  position: relative;
+  z-index: 1;
   flex: 1;
   height: calc(100vh - var(--statusbar-h));
   overflow: auto;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 40px 32px 80px;
-  font-size: 17px;
-  line-height: 1.7;
+  padding: 52px 40px 96px;
+  font-family: var(--font-text);
+  font-size: 19px;
+  line-height: 1.72;
+  font-optical-sizing: auto;
 }
 
 .markdown-body h1,
 .markdown-body h2,
 .markdown-body h3,
 .markdown-body h4 {
+  font-family: var(--font-display);
   color: var(--heading);
-  font-weight: 700;
-  line-height: 1.25;
+  font-weight: 600;
+  line-height: 1.18;
   letter-spacing: -0.012em;
   margin: 1.7em 0 0.6em;
+  font-optical-sizing: auto;
 }
 
 .markdown-body > :first-child,
@@ -128,9 +161,9 @@ body.markdown-body {
   margin-top: 0;
 }
 
-.markdown-body h1 { font-size: 2em; letter-spacing: -0.02em; }
-.markdown-body h2 { font-size: 1.5em; }
-.markdown-body h3 { font-size: 1.25em; }
+.markdown-body h1 { font-size: 2.3em; font-weight: 580; letter-spacing: -0.022em; }
+.markdown-body h2 { font-size: 1.62em; }
+.markdown-body h3 { font-size: 1.28em; }
 
 .markdown-body h1,
 .markdown-body h2 {
@@ -165,8 +198,8 @@ body.markdown-body {
   color: var(--inline-code-fg);
   padding: 0.15em 0.4em;
   border-radius: 5px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.88em;
+  font-family: var(--font-mono);
+  font-size: 0.82em;
 }
 
 .markdown-body pre {
@@ -189,8 +222,9 @@ body.markdown-body {
   margin: 1em 0;
   padding: 0.7em 1.1em;
   color: var(--muted);
+  font-style: italic;
   background: var(--callout-bg);
-  border-left: 3px solid var(--callout-border);
+  border-left: 3px solid var(--accent);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
@@ -318,6 +352,8 @@ body.markdown-body {
 }
 
 #outline {
+  position: relative;
+  z-index: 3;
   flex: none;
   width: 248px;
   height: calc(100vh - var(--statusbar-h));
@@ -325,6 +361,16 @@ body.markdown-body {
   padding: 28px 12px;
   border-right: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface-2), var(--bg) 45%);
+}
+
+#outline .outline-title {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 10px 10px;
 }
 
 #outline[hidden] {
@@ -532,18 +578,19 @@ body.no-statusbar #status-bar {
   :root[data-theme="dark"] {
     --bg: #ffffff;
     --surface: #ffffff;
-    --surface-2: #f6f8fa;
-    --fg: #24292f;
-    --heading: #1f2328;
-    --muted: #57606a;
-    --border: #d0d7de;
-    --rule: #d8dee4;
-    --code-bg: #f6f8fa;
-    --inline-code-bg: #eef1f3;
-    --inline-code-fg: #24292f;
-    --callout-bg: #f6f8fa;
-    --callout-border: #d0d7de;
-    --link: #2f4fd0;
+    --surface-2: #f4efe3;
+    --fg: #363024;
+    --heading: #241f17;
+    --muted: #6f6750;
+    --border: #ddd4bf;
+    --rule: #e3dac6;
+    --code-bg: #f4efe3;
+    --inline-code-bg: #ece5d3;
+    --inline-code-fg: #4a4231;
+    --callout-bg: #f4efe3;
+    --callout-border: #d8cfb6;
+    --link: #2f6b46;
+    --accent: #357a4f;
   }
 
   body {
@@ -654,6 +701,38 @@ body.no-statusbar #status-bar {
 /* Crepe editor fills the viewport column */
 #viewport .milkdown {
   height: 100%;
+}
+
+/* The live editing surface uses the editorial type system: Newsreader for
+   prose, Fraunces for headings. Crepe sets its own prose font, so set it
+   explicitly here rather than relying on the #viewport cascade. */
+#viewport .milkdown .ProseMirror,
+#viewport .milkdown .ProseMirror p,
+#viewport .milkdown .ProseMirror li,
+#viewport .milkdown .ProseMirror blockquote {
+  font-family: var(--font-text);
+}
+
+#viewport .milkdown .ProseMirror h1,
+#viewport .milkdown .ProseMirror h2,
+#viewport .milkdown .ProseMirror h3,
+#viewport .milkdown .ProseMirror h4,
+#viewport .milkdown .ProseMirror h5,
+#viewport .milkdown .ProseMirror h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.014em;
+  font-optical-sizing: auto;
+}
+
+#viewport .milkdown .ProseMirror h1 { font-weight: 580; letter-spacing: -0.022em; }
+
+/* Editor placeholder ("Start writing…") in the editorial serif, italic. */
+#viewport .milkdown .ProseMirror .placeholder::before,
+#viewport .milkdown .crepe-placeholder::before {
+  font-family: var(--font-text);
+  font-style: italic;
+  color: var(--muted);
 }
 
 /* Hide Crepe's block-edit gutter handle (the "+" add-block button and the
@@ -802,7 +881,7 @@ body.no-statusbar #status-bar {
 }
 
 #palette-list li .palette-hint {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 0.85em;
   color: var(--muted);
 }

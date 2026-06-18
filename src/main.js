@@ -35,27 +35,6 @@ let crepe = null;
 let searchView = null;
 let dirty = false;
 
-const SAMPLE = `# Welcome to Groot
-
-A lightweight **Markdown viewer** built with Tauri + Rust.
-
-- Use the **File** menu → **Open File…** (⌘O), or **drag a \`.md\` file** onto the window.
-- Recently opened files appear under **File → Open Recent**.
-- Switch themes under **View → Appearance**.
-- Rendering is powered by \`pulldown-cmark\`, sanitized with \`ammonia\`.
-
-## Example code
-
-\`\`\`rust
-fn main() {
-    let greeting = "hello, groot";
-    println!("{greeting}");
-}
-\`\`\`
-
-> Editing is coming in a later iteration.
-`;
-
 // Non-destructive: shows a dismissible banner; never replaces the live editor.
 // When no editor exists yet (initial load failure), fall back to inline content.
 function showError(message) {
@@ -292,14 +271,14 @@ window.addEventListener("DOMContentLoaded", async () => {
   await applyTheme(choice);
   await injectPrintSyntax();
   // Tell the backend we're listening for `open-file`; it flushes any file the OS
-  // queued via "Open With" at launch. Show the welcome sample only if none did.
+  // queued via "Open With" at launch. Start with a blank page if none did.
   let opened = false;
   try {
     opened = await invoke("frontend_ready");
   } catch {
-    // backend unavailable in some dev contexts; fall back to the sample
+    // backend unavailable in some dev contexts; fall back to a blank page
   }
-  if (!opened) render(SAMPLE);
+  if (!opened) render("");
 });
 
 // ---- Find (Cmd+F) ----
@@ -462,10 +441,17 @@ function buildOutline() {
     outlineObserver = null;
   }
   outline.innerHTML = "";
+  const title = document.createElement("div");
+  title.className = "outline-title";
+  title.textContent = "Contents";
+  outline.appendChild(title);
 
   const headings = [...viewport.querySelectorAll("h1, h2, h3, h4, h5, h6")];
   if (headings.length === 0) {
-    outline.innerHTML = '<p class="outline-empty">No headings in this document.</p>';
+    const empty = document.createElement("p");
+    empty.className = "outline-empty";
+    empty.textContent = "No headings in this document.";
+    outline.appendChild(empty);
     return;
   }
 

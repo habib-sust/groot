@@ -106,6 +106,7 @@ pub fn run() {
             let appearance = Appearance::load(&appearance_store_path(handle));
             let menu = menu::build_app_menu(handle, &recent, appearance)?;
             app.set_menu(menu)?;
+            menu::build_tray(handle)?;
             app.manage(Mutex::new(recent));
             app.manage(Mutex::new(appearance));
 

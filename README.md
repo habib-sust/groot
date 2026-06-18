@@ -24,7 +24,9 @@ brew install --cask habib-sust/groot/groot
 - **Live reload** — external changes to the open file are picked up automatically (and ignored while you have unsaved edits).
 - **Find** in-document (⌘F), **Outline** sidebar with scroll-spy (⌘⇧O), and per-code-block **Copy**.
 - **Export as HTML** and **Print / PDF** — both render a clean standalone document (no editor chrome).
-- **Themes** — warm-cream light and slate dark, with a System option that follows the OS; persisted across launches.
+- **Command palette** (⌘K) — fuzzy-search and run any command.
+- **Menu-bar icon** — a macOS status-bar (tray) icon with quick actions: Show, New File, Open File…, and Quit.
+- **Themes & typography** — warm paper-cream light and slate dark (with a System option that follows the OS; persisted across launches), set in an editorial type system (Fraunces display + Newsreader body).
 
 ## Keyboard shortcuts
 
@@ -36,6 +38,8 @@ brew install --cask habib-sust/groot/groot
 | Save As | ⌘⇧S |
 | Find | ⌘F |
 | Toggle Outline | ⌘⇧O |
+| Toggle Status Bar | ⌘/ |
+| Command Palette | ⌘K |
 | Print | ⌘P |
 
 ## Tech stack
