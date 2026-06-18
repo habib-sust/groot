@@ -72,7 +72,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "groot ${{ github.ref_name }}"
-          releaseBody: "Download the .dmg below. groot is not yet notarized — see the README for the first-launch step."
+          releaseBody: "Download the .dmg below, or install with `brew install --cask habib-sust/groot/groot`. Signed with an Apple Developer ID and notarized by Apple."
           releaseDraft: false
           prerelease: false
           args: --target universal-apple-darwin

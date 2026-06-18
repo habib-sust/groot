@@ -8,13 +8,8 @@ A lightweight Markdown desktop app with an in-place **WYSIWYG editor** — write
 brew install --cask habib-sust/groot/groot
 ```
 
-> **First launch:** groot is not yet notarized by Apple, so macOS Gatekeeper
-> blocks it the first time. Right-click the app in Finder and choose **Open**
-> (then confirm), or run once:
->
-> ```bash
-> xattr -dr com.apple.quarantine /Applications/groot.app
-> ```
+The app is signed with an Apple Developer ID and notarized by Apple, so it
+launches normally — no Gatekeeper workaround needed.
 
 ## Features
 
