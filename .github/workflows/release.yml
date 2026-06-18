@@ -77,6 +77,31 @@ jobs:
           prerelease: false
           args: --target universal-apple-darwin
 
+      # tauri-action staples the .app but not the .dmg wrapper, so a manually
+      # downloaded .dmg can still prompt on open. Notarize + staple the dmg too
+      # (fast — its contents are already notarized) and re-upload the stapled
+      # file over the released asset BEFORE bump-cask reads it for the checksum.
+      - name: Notarize and staple the .dmg
+        if: ${{ env.APPLE_API_KEY_PATH != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          set -euo pipefail
+          DMG="$(find src-tauri/target -path '*/bundle/dmg/*.dmg' | head -1)"
+          [ -n "$DMG" ] || { echo "::error::no .dmg found to notarize"; exit 1; }
+          echo "Notarizing $DMG"
+          xcrun notarytool submit "$DMG" \
+            --key "$APPLE_API_KEY_PATH" \
+            --key-id "$APPLE_API_KEY" \
+            --issuer "$APPLE_API_ISSUER" \
+            --wait
+          xcrun stapler staple "$DMG"
+          xcrun stapler validate "$DMG"
+          echo "Re-uploading stapled .dmg over the release asset…"
+          gh release upload "${GITHUB_REF_NAME}" "$DMG" --clobber -R habib-sust/groot
+
   bump-cask:
     needs: release
     runs-on: ubuntu-latest
