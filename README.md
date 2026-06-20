@@ -2,6 +2,8 @@
 
 A lightweight Markdown desktop app with an in-place **WYSIWYG editor** — write and read Markdown as rendered rich text, no split-pane source/preview, no mode switch. Built with Tauri v2 (Rust) and a Milkdown Crepe editing surface.
 
+**Website:** https://habib-sust.github.io/groot/
+
 ## Install (macOS)
 
 ```bash
