@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>groot — a lightweight Markdown desktop app</title>
+  <meta name="description" content="groot is a lightweight macOS Markdown desktop app with an in-place WYSIWYG editor — write and read Markdown as rendered rich text." />
+  <!-- Open Graph -->
+  <meta property="og:title" content="groot — a lightweight Markdown desktop app" />
+  <meta property="og:description" content="In-place WYSIWYG Markdown editing for macOS. Built with Tauri v2 and Milkdown Crepe." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://habib-sust.github.io/groot/" />
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════ HERO ═══════════════════════════════════════ -->
+  <header id="hero">
+    <div class="wrap hero-inner">
+
+      <!-- Logotype row -->
+      <div class="hero-brand">
+        <img class="hero-icon" src="assets/icon.svg" width="72" height="72" alt="groot app icon" />
+        <h1>groot</h1>
+      </div>
+
+      <p class="tagline">A lightweight Markdown desktop app with an in-place <strong>WYSIWYG editor</strong> — write and read Markdown as rendered rich text. No split-pane, no mode switch.</p>
+
+      <!-- CTA row -->
+      <div class="cta">
+        <div class="copy-field">
+          <code id="brew-cmd">brew install --cask habib-sust/groot/groot</code>
+          <button id="copy-btn" type="button" aria-label="Copy install command">Copy</button>
+        </div>
+        <a class="btn-secondary" href="https://github.com/habib-sust/groot/releases/latest">Download .dmg</a>
+      </div>
+      <p class="hero-note">macOS · Apple Developer-ID signed &amp; notarized</p>
+
+      <!-- Mock editor — the memorable element -->
+      <div class="mock-editor" aria-hidden="true">
+        <div class="mock-titlebar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="mock-filename">field-notes.md</span>
+        </div>
+        <div class="mock-body">
+          <div class="mock-outline">
+            <div class="mock-outline-title">OUTLINE</div>
+            <div class="mock-outline-item mock-outline-h1">Notes on Writing</div>
+            <div class="mock-outline-item mock-outline-h2 mock-outline-active">On beginnings</div>
+            <div class="mock-outline-item mock-outline-h2">On revision</div>
+            <div class="mock-outline-item mock-outline-h2">On finishing</div>
+          </div>
+          <div class="mock-content">
+            <div class="mock-h1">Notes on Writing</div>
+            <div class="mock-h2">On beginnings</div>
+            <p class="mock-p">Every worthwhile document starts the same way — with a single line that commits to a direction. The act of writing it is the act of thinking.</p>
+            <div class="mock-h2">On revision</div>
+            <p class="mock-p">Good writing is <strong class="mock-bold">rewriting</strong>. The first draft earns the right to a second. groot keeps the words visible, the chrome invisible.<span class="cursor"></span></p>
+            <div class="mock-code-block">
+              <span class="mock-code-lang">rust</span>
+              <div class="mock-code-line"><span class="mock-kw">fn</span> <span class="mock-fn">render</span>(<span class="mock-param">markdown</span>: &amp;<span class="mock-ty">str</span>) -&gt; <span class="mock-ty">String</span> {</div>
+              <div class="mock-code-line">    <span class="mock-fn">parse_and_highlight</span>(markdown)</div>
+              <div class="mock-code-line">}</div>
+            </div>
+          </div>
+        </div>
+        <div class="mock-statusbar">
+          <span>243 words · 1 min read</span>
+          <span class="mock-sb-mid">On revision</span>
+          <span class="mock-sb-saved">Saved</span>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ══════════════════════════════════ FEATURES ══════════════════════════════════ -->
+    <section id="features">
+      <div class="wrap">
+        <h2 class="section-title">Features</h2>
+        <div class="feature-grid">
+
+          <div class="feature">
+            <span class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </span>
+            <h3>In-place WYSIWYG</h3>
+            <p>Markdown renders as you type — headings, lists, tables, fenced code with syntax highlighting. No raw-symbol mode switching.</p>
+          </div>
+
+          <div class="feature">
+            <span class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </span>
+            <h3>Live reload</h3>
+            <p>External changes to the open file are picked up automatically, and ignored while you have unsaved edits.</p>
+          </div>
+
+          <div class="feature">
+            <span class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </span>
+            <h3>Outline sidebar</h3>
+            <p>A document outline with scroll-spy (<kbd>⌘⇧O</kbd>) to jump around long files.</p>
+          </div>
+
+          <div class="feature">
+            <span class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+            </span>
+            <h3>Command palette</h3>
+            <p>Fuzzy-search and run any command with <kbd>⌘K</kbd>.</p>
+          </div>
+
+          <div class="feature">
+            <span class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </span>
+            <h3>Find in document</h3>
+            <p>In-place search (<kbd>⌘F</kbd>) that highlights matches as you type.</p>
+          </div>
+
+          <div class="feature">
+            <span class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            </span>
+            <h3>Export &amp; print</h3>
+            <p>Export clean standalone HTML, or Print / save as PDF — both render without editor chrome.</p>
+          </div>
+
+          <div class="feature">
+            <span class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            </span>
+            <h3>Themes &amp; typography</h3>
+            <p>Warm paper-cream light and slate dark (or follow the system), in an editorial Fraunces + Newsreader type system.</p>
+          </div>
+
+          <div class="feature">
+            <span class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </span>
+            <h3>Menu-bar icon</h3>
+            <p>A macOS status-bar icon with quick actions: Show, New File, Open File…, and Quit.</p>
+          </div>
+
+          <div class="feature">
+            <span class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            </span>
+            <h3>Open anywhere</h3>
+            <p>Open via the File menu, Open Recent (persisted), or drag-and-drop a <code>.md</code> file onto the window.</p>
+          </div>
+
+          <div class="feature">
+            <span class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v14a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            </span>
+            <h3>Safe editing</h3>
+            <p>Save / Save As / New with unsaved-changes tracking and a close guard that prompts before discarding edits.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════ SHOWCASE ══════════════════════════════════ -->
+    <section id="showcase">
+      <div class="wrap">
+        <h2 class="section-title">A closer look</h2>
+
+        <figure class="shot">
+          <div class="window">
+            <div class="titlebar">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <img src="assets/hero.png" alt="groot editor showing a Markdown document rendered as rich text, light theme" />
+          </div>
+          <figcaption>Write Markdown as rendered rich text — light theme.</figcaption>
+        </figure>
+
+        <figure class="shot">
+          <div class="window">
+            <div class="titlebar">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <img src="assets/command-palette.png" alt="groot command palette open over a document" />
+          </div>
+          <figcaption>Run any command with the ⌘K palette.</figcaption>
+        </figure>
+
+        <figure class="shot">
+          <div class="window">
+            <div class="titlebar">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <img src="assets/outline-dark.png" alt="groot outline sidebar visible alongside a document, dark theme" />
+          </div>
+          <figcaption>Outline sidebar with scroll-spy — dark theme.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════ INSTALL ═══════════════════════════════════ -->
+    <section id="install">
+      <div class="wrap install">
+        <h2 class="section-title">Install</h2>
+        <p class="install-lead">Install on macOS with Homebrew:</p>
+        <pre class="code-block"><code>brew install --cask habib-sust/groot/groot</code></pre>
+        <p class="install-note">groot is signed with an Apple Developer ID and notarized by Apple, so it launches normally — no Gatekeeper workaround needed. You can also <a href="https://github.com/habib-sust/groot/releases/latest">download the .dmg</a> directly.</p>
+
+        <h3 class="build-title">Build from source</h3>
+        <p class="install-note-sm">Requires <a href="https://www.rust-lang.org/tools/install">Rust</a> and <a href="https://nodejs.org/">Node.js</a>.</p>
+        <pre class="code-block"><code>git clone https://github.com/habib-sust/groot.git
+cd groot
+npm install
+npm run tauri dev      # launch the app
+npm run tauri build    # produce a distributable bundle</code></pre>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════ SHORTCUTS ═════════════════════════════════ -->
+    <section id="shortcuts">
+      <div class="wrap shortcuts">
+        <h2 class="section-title">Keyboard shortcuts</h2>
+        <table>
+          <thead>
+            <tr><th>Action</th><th>Shortcut</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Open File</td><td><kbd>⌘</kbd><kbd>O</kbd></td></tr>
+            <tr><td>New</td><td><kbd>⌘</kbd><kbd>N</kbd></td></tr>
+            <tr><td>Save</td><td><kbd>⌘</kbd><kbd>S</kbd></td></tr>
+            <tr><td>Save As</td><td><kbd>⌘</kbd><kbd>⇧</kbd><kbd>S</kbd></td></tr>
+            <tr><td>Find</td><td><kbd>⌘</kbd><kbd>F</kbd></td></tr>
+            <tr><td>Toggle Outline</td><td><kbd>⌘</kbd><kbd>⇧</kbd><kbd>O</kbd></td></tr>
+            <tr><td>Toggle Status Bar</td><td><kbd>⌘</kbd><kbd>/</kbd></td></tr>
+            <tr><td>Command Palette</td><td><kbd>⌘</kbd><kbd>K</kbd></td></tr>
+            <tr><td>Print</td><td><kbd>⌘</kbd><kbd>P</kbd></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════ FOOTER ═══════════════════════════════════ -->
+  <footer>
+    <div class="wrap footer">
+      <p class="footer-tech">Built with
+        <a href="https://tauri.app/">Tauri v2</a>,
+        <a href="https://milkdown.dev/">Milkdown Crepe</a>,
+        <a href="https://github.com/raphlinus/pulldown-cmark">pulldown-cmark</a>,
+        <a href="https://github.com/trishume/syntect">syntect</a>,
+        <a href="https://github.com/rust-ammonia/ammonia">ammonia</a>, and
+        <a href="https://github.com/notify-rs/notify">notify</a>.
+      </p>
+      <p class="footer-links">
+        <a href="https://github.com/habib-sust/groot">GitHub</a> ·
+        <a href="https://github.com/habib-sust/groot/blob/main/LICENSE">MIT License</a>
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    const copyBtn = document.getElementById("copy-btn");
+    const brewCmd = document.getElementById("brew-cmd");
+    if (copyBtn && brewCmd) {
+      copyBtn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(brewCmd.textContent.trim());
+          const prev = copyBtn.textContent;
+          copyBtn.textContent = "Copied!";
+          copyBtn.classList.add("copied");
+          setTimeout(() => {
+            copyBtn.textContent = prev;
+            copyBtn.classList.remove("copied");
+          }, 1500);
+        } catch (e) {
+          // fallback: select the text
+          const range = document.createRange();
+          range.selectNode(brewCmd);
+          window.getSelection().removeAllRanges();
+          window.getSelection().addRange(range);
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>
