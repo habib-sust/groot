@@ -229,7 +229,7 @@ main > section {
 }
 #copy-btn:hover { opacity: 0.88; }
 #copy-btn:active { transform: scale(0.97); }
-#copy-btn.copied { background: #2a9d5c; }
+#copy-btn.copied { filter: brightness(1.18); }
 
 .btn-secondary {
   display: inline-block;
